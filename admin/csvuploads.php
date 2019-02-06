@@ -18,12 +18,13 @@ $language_tag = 'en-GB';
 $reload = true;
 $lang->load($extension, $base_dir, $language_tag, $reload);
 
-// Set some global property
-#$document = JFactory::getDocument();
-#$document->addStyleDeclaration('.icon-helloworld {background-image: url(../media/com_helloworld/images/tux-16x16.png);}');
+// Access check.
+if (!JFactory::getUser()->authorise('core.manage', 'com_csvuploads')) {
+    return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
+}
 
 // Require helper file
-#JLoader::register('HelloWorldHelper', JPATH_COMPONENT . '/helpers/helloworld.php');
+JLoader::register('CSVUploadsHelper', JPATH_COMPONENT . '/helpers/csvuploads.php');
 
 // Get an instance of the controller prefixed by CSVUploads
 $controller = JControllerLegacy::getInstance('CSVUploads');

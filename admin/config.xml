@@ -1,31 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
-<config>
+<config
+    addrulepath="/administrator/components/com_csvuploads/config"
+>
     <fieldset
-        name="records"
-        label="COM_CSVUPLOADS_CONFIG_RECORDS_SETTINGS_LABEL"
-        description="COM_CSVUPLOADS_CONFIG_RECORDS_SETTINGS_DESC"
+        name="folders"
+        label="COM_CSVUPLOADS_CONFIG_SETTINGS_LABEL"
+        description="COM_CSVUPLOADS_CONFIG_SETTINGS_DESC"
     >
         <field
-            name="email_admins"
-            type="textarea"
-            label="COM_CSVUPLOADS_CONFIG_EMAIL_ADMINS_LABEL"
-            description="COM_CSVUPLOADS_CONFIG_EMAIL_ADMINS_DESC"
-            cols="50"
-            rows="10"
-            filter="string"
+            name="uploadfolder"
+            type="folderlist"
+            label="COM_CSVUPLOADS_CONFIG_UPLOAD_FOLDER_LABEL"
+            description="COM_CSVUPLOADS_CONFIG_UPLOAD_FOLDER_DESC"
+            default=""
+        />
+        <field
+            name="csvfolder"
+            type="text"
+            label="COM_CSVUPLOADS_CONFIG_CSV_FOLDER_LABEL"
+            description="COM_CSVUPLOADS_CONFIG_CSV_FOLDER_DESC"
+            default="csv"
+            validate="createfolder"
         />
     </fieldset>
-    
-    <fieldset name="permissions"
-        description="JCONFIG_PERMISSIONS_DESC"
-        label="JCONFIG_PERMISSIONS_LABEL"
+       <fieldset
+        name="categories"
+        label="COM_CSVUPLOADS_CONFIG_CATEGORIES_LABEL"
     >
-
-        <field name="rules" type="rules"
-            component="com_csvuploads"
-            filter="rules"
-            validate="rules"
+        <field
+            name="cat_exclude"
+            type="text"
+            label="COM_CSVUPLOADS_CONFIG_CATEGORIES_EXCLUDE_LABEL"
+            description="COM_CSVUPLOADS_CONFIG_CATEGORIES_EXCLUDE_DESC"
+            default=""
+        />
+        <field
+            name="cat_depth"
+            type="text"
+            label="COM_CSVUPLOADS_CONFIG_CATEGORIES_DEPTH_LABEL"
+            description="COM_CSVUPLOADS_CONFIG_CATEGORIES_DEPTH_DESC"
+            default="*"
+        />
+    </fieldset>
+    <fieldset
+        name="permissions"
+        label="JCONFIG_PERMISSIONS_LABEL"
+        description="JCONFIG_PERMISSIONS_DESC"
+    >
+        <field
+            name="rules"
+            type="rules"
             label="JCONFIG_PERMISSIONS_LABEL"
-            section="component" />
+            class="inputbox"
+            validate="rules"
+            filter="rules"
+            component="com_csvuploads"
+            section="component"
+        />
     </fieldset>
 </config>

@@ -9,6 +9,9 @@
 
 defined('_JEXEC') or die;
 
+// Import Joomla table library
+jimport('joomla.database.table');
+
 /**
  * CSVUploads Table class
  */
@@ -37,7 +40,7 @@ class CSVUploadsTablecsvuploads extends JTable
             // Convert the params field to a string.
             $parameter = new JRegistry;
             $parameter->loadArray($array['params']);
-            $array['params'] = (string)$parameter;
+            $array['params'] = (string) $parameter;
         }
         return parent::bind($array, $ignore);
     }
@@ -52,18 +55,50 @@ class CSVUploadsTablecsvuploads extends JTable
      */
     public function load($pk = null, $reset = true)
     {
-        if (parent::load($pk, $reset))
-        {
+        if (parent::load($pk, $reset)) {
             // Convert the params field to a registry.
             $params = new JRegistry;
             $params->loadString($this->params, 'JSON');
 
             $this->params = $params;
             return true;
-        }
-        else
-        {
+        } else {
             return false;
         }
+    }
+
+    /**
+     * Method to compute the default name of the asset.
+     * The default name is in the form `table_name.id`
+     * where id is the value of the primary key of the table.
+     *
+     * @return  string
+     */
+    protected function _getAssetName()
+    {
+        $k = $this->_tbl_key;
+        return 'com_csvuploads.csvupload.'.(int) $this->$k;
+    }
+
+    /**
+     * Method to return the title to use for the asset table.
+     *
+     * @return  string
+     */
+    protected function _getAssetTitle()
+    {
+        return $this->title;
+    }
+
+    /**
+     * Get the parent asset id for the record
+     *
+     * @return  int
+     */
+    protected function _getAssetParentId(JTable $table = null, $id = null)
+    {
+        $asset = JTable::getInstance('Asset');
+        $asset->loadByName('com_csvuploads');
+        return $asset->id;
     }
 }

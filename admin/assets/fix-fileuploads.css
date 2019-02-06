@@ -1,0 +1,11 @@
+.fileupload .input-append {
+    width: 100%;
+}
+
+.fileupload .uneditable-input {
+    width: auto !important;
+    max-width: calc(100% - 10.8em);
+    -padding-right: 1.5em;
+    text-overflow: ellipsis;
+}
+

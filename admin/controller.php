@@ -19,5 +19,25 @@ class CSVUploadsController extends JControllerLegacy
      *
      * @var string
      */
-    protected $default_view = 'records';
+    protected $default_view = 'csvuploads';
+
+    /**
+     * display task
+     *
+     * @return void
+     */
+    function display($cachable = false, $urlparams = false)
+    {
+        // Set default view if not set
+        JFactory::getApplication()->input->set('view', JFactory::getApplication()->input->get('view', 'sendinvites'));
+
+        $session = JFactory::getSession();
+        $registry = $session->get('registry');
+
+        // call parent behavior
+        parent::display($cachable, $urlparams);
+
+        // Add style
+        CSVUploadsHelper::addStyle();
+    }
 }
