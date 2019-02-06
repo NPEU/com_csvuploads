@@ -49,12 +49,16 @@
             <filename>controller.php</filename>
             <filename>csvuploads.php</filename>
             <filename>index.html</filename>
-            <folder>controllers</folder>
+			<folder>assets</folder>
+			<folder>config</folder>
+			<folder>controllers</folder>
+			<folder>helpers</folder>
             <folder>language</folder>
-            <folder>models</folder>
-            <folder>sql</folder>
-            <folder>tables</folder>
-            <folder>views</folder>
+			<folder>models</folder>
+			<folder>sql</folder>
+			<folder>tables</folder>
+			<folder>vendor</folder>
+			<folder>views</folder>
         </files>
     </administration>
 
