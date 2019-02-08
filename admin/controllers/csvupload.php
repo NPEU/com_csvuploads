@@ -9,7 +9,7 @@
 
 defined('_JEXEC') or die;
 
-require_once __DIR__ . '/vendor/autoload.php';
+require_once dirname(__DIR__) . '/vendor/autoload.php';
 
 /**
  * CSVUploads Record Controller
@@ -47,6 +47,10 @@ class CSVUploadsControllerCSVUpload extends JControllerForm
      */
     public function save($key = null, $urlVar = null)
     {
+        // Register events group:
+        JPluginHelper::importPlugin('csvuploads');
+        $dispatcher = JEventDispatcher::getInstance();
+
         jimport('joomla.filesystem.file');
 
         $app          = JFactory::getApplication();
@@ -74,8 +78,8 @@ class CSVUploadsControllerCSVUpload extends JControllerForm
         $params       = clone JComponentHelper::getParams($option);
         $uploadfolder = $params->get('uploadfolder');
         $csvfolder    = $params->get('csvfolder');
+        $jsonfolder   = $params->get('jsonfolder');
         $catfolder    = $db->loadResult();
-        $path         = JPATH_ROOT . '/' . $uploadfolder . '/' . $csvfolder . '/' . $catfolder . '/';
 
         // Upload the file:
         $files = JFactory::getApplication()->input->files->get($control);
@@ -88,7 +92,7 @@ class CSVUploadsControllerCSVUpload extends JControllerForm
 
             if ($files['file']['size'] > $max) {
                 JError::raiseWarning(100, sprintf(JText::_('COM_CSVUPLOADS_ERROR_TOO_LARGE'), $files['file']['name'], ini_get('upload_max_filesize')));
-                
+
                 // Redirect back to the edit screen.
                 $app->setUserState($context . '.data', $data);
                 $this->setRedirect(
@@ -100,79 +104,105 @@ class CSVUploadsControllerCSVUpload extends JControllerForm
                 return false;
             }
 
-            $src   = $files['file']['tmp_name'];
-            $dest1 = $path . $filename1;
-            $dest2 = $path . $filename2;
+            $src = $files['file']['tmp_name'];
 
             if (in_array($files['file']['type'], $accept_types)) {
-                if (JFile::upload($src, $dest1)) {
-                    
-                    // Check for JSON processing:
-                    // @TODO: revise this to check for JSON processing Y/N, and if there's a Twig
-                    // template, process that.
-                    /*
-                    
-                        $loader = new Twig_Loader_Array(array('tpl' => $json_tpl));
-                        $twig   = new Twig_Environment($loader); 
-                        $output = $twig->render('tpl', array('data' => $json));
-                    
-                    */
-                    /*if (isset($data['options']) && !empty($data['options']['processor']) && $data['options']['processor'] != 'none') {
-                        #require JPATH_COMPONENT . '/csvprocessor.php';
-                        
-                        // Convert the CSV file to array:
-                        $csv_data = $this->csvarray(file_get_contents($dest1), (bool) $data['options']['namedkeys']);
-                        
-                        if ($data['options']['processor'] == 'custom') {
-                            $processor_file = JPATH_ROOT . '/' . $params->get('processorsfolder') . '/processor' . $data['id'] . '.php';
-                            $classname = 'Processor' . $data['id'];
-                        }
-                        if ($data['options']['processor'] == 'json') {
-                            $processor_file = JPATH_COMPONENT . '/processors/' . $data['options']['processor'] . '.php';
-                            $classname = $data['options']['processor'] . 'Processor';
-                        }
-                        
-                        $processor_error = true;
-                        if (file_exists($processor_file)) {
-                            require $processor_file;
-                            
-                            if (class_exists($classname)) {
-                                $processor = new $classname();
-                                
-                                if (is_a($processor, 'CSVuploadsProcessor')) {
-                                    $new_csv_data = $processor->process($csv_data, $dest2);
-                                    $new_csv_string = $this->arraycsv($new_csv_data);
 
-                                    // Overwrite uploaded file with modified data:
-                                    JFile::write($dest1, $new_csv_string);
-                                    $processor_error = false;
-                                }
+                // Convert the CSV file to array:
+                $csv_data = $this->csvarray(file_get_contents($src), (bool) $data['options']['namedkeys']);
+
+                // This feels a bit hacky, but it allows plugins that repsond to 'onAfterLoadCSV' to
+                // return false and prevent the storage of the CSV files at all.
+                // For example your plugin may need to intercept the default behavior in order to save
+                // the data to a database instead, and in such a case it may be desirable not to also
+                // have the CSV file stored.
+                $save_to_csv_file = true;
+
+                // Pass to any plugins looking to take action on the CSV data.
+                // Note this may or may not transform the actual data itself.
+                $save_to_csv_file = $dispatcher->trigger('onAfterLoadCSV', array(&$csv_data, $filename1));
+
+                if ($save_to_csv_file) {
+                    $csv_folder_path = JPATH_ROOT . '/' . $uploadfolder . '/' . $csvfolder . '/';
+                    if (!file_exists($csv_folder_path)) {
+                        mkdir($csv_folder_path);
+                    }
+
+                    $csv_path     = $csv_folder_path . $catfolder . '/';
+                    if (!file_exists($csv_path)) {
+                        mkdir($csv_path);
+                    }
+
+                    $json_folder_path = JPATH_ROOT . '/' . $uploadfolder . '/' . $jsonfolder . '/';
+                    if (!file_exists($json_folder_path)) {
+                        mkdir($json_folder_path);
+                    }
+
+                    $json_path     = $json_folder_path . $catfolder . '/';
+                    if (!file_exists($json_path)) {
+                        mkdir($json_path);
+                    }
+
+                    $csv_file_1 = $csv_path . $filename1;
+                    $csv_file_2 = $csv_path . $filename2;
+
+                    if (JFile::upload($src, $csv_file_1)) {
+
+                        // Check for JSON processing:
+                        if (isset($data['options']) && !empty($data['options']['processor']) && $data['options']['processor'] == 'json') {
+
+                            // Convert to JSON:
+                            $json = json_encode($csv_data);
+
+                            if (!empty($data['options']['json_format'])) {
+                                // We need to parse this to format the json:
+
+                                $loader = new Twig_Loader_Array(array('tpl' => $data['options']['json_format']));
+                                $twig   = new Twig_Environment($loader);
+
+                                // Add html_id filter:
+                                $html_id_filter = new Twig_SimpleFilter('html_id', function ($string) {
+                                    $new_string = '';
+
+                                    $new_string = self::htmlID($string);
+
+                                    return $new_string;
+                                });
+                                $twig->addFilter($html_id_filter);
+
+                                $json = $twig->render('tpl', array('data' => $csv_data));
                             }
+
+                            $json_filename = str_replace('.csv', '.json', $filename2);
+
+                            // Pass to any plugins looking to take action on the JSON data.
+                            // Note this may or may not transform the actual data itself.
+                            $results = $dispatcher->trigger('onBeforeSaveJSON', array(&$json, $filename1));
+                            JFile::write($json_path . $json_filename, $json);
                         }
-                        if ($processor_error) {
-                            JError::raiseWarning(100, sprintf(JText::_('COM_CSVUPLOADS_PROCESSOR_NOT_FOUND'), $processor_file, $classname));
-                        }
-                    }*/
-                    
-                    // Copy the the file to overwrite the unstamped version:
-                    JFile::copy($dest1, $dest2);
-                    
-                    //Redirect to a page of your choice
-                    $app->enqueueMessage(sprintf(JText::_('COM_CSVUPLOADS_MESSAGE_SUCCESS'), $files['file']['name'], $filename2));
+
+                        // Copy the the file to overwrite the unstamped version:
+                        JFile::copy($csv_file_1, $csv_file_2);
+
+                        //Redirect to a page of your choice
+                        $app->enqueueMessage(sprintf(JText::_('COM_CSVUPLOADS_MESSAGE_SUCCESS'), $files['file']['name'], $filename2));
+                    } else {
+                        //Redirect and throw an error message
+                        JError::raiseWarning(100, sprintf(JText::_('COM_CSVUPLOADS_ERROR_FAILED_UPLOAD'), $files['file']['name']));
+
+                        // Redirect back to the edit screen.
+                        $app->setUserState($context . '.data', $data);
+                        $this->setRedirect(
+                            JRoute::_(
+                                'index.php?option=' . $option . '&view=' . $view_item
+                                . $this->getRedirectToItemAppend($recordId, $key), false
+                            )
+                        );
+
+                        return false;
+                    }
                 } else {
-                    //Redirect and throw an error message
-                    JError::raiseWarning(100, sprintf(JText::_('COM_CSVUPLOADS_ERROR_FAILED_UPLOAD'), $files['file']['name']));
-
-                    // Redirect back to the edit screen.
-                    $app->setUserState($context . '.data', $data);
-                    $this->setRedirect(
-                        JRoute::_(
-                            'index.php?option=' . $option . '&view=' . $view_item
-                            . $this->getRedirectToItemAppend($recordId, $key), false
-                        )
-                    );
-
-                    return false;
+                    $app->enqueueMessage(sprintf(JText::_('COM_CSVUPLOADS_MESSAGE_SUCCESS_NO_SAVE'), $files['file']['name'], $filename2));
                 }
             } else {
                 //Redirect and notify user file is not right extension
@@ -204,7 +234,9 @@ class CSVUploadsControllerCSVUpload extends JControllerForm
             trigger_error('Function \'csvarray\' expects argument 1 to be an string', E_USER_ERROR);
             return false;
         }
+
         $csv = preg_replace('/(\r|\n\r|\r\n)/', '\n', $csv);
+
         // Remove breaks from within quotes:
         if (preg_match_all('/"[^"]*"/', $csv, $matches)) {
             foreach($matches[0] as $match) {
@@ -213,12 +245,14 @@ class CSVUploadsControllerCSVUpload extends JControllerForm
                 $csv = preg_replace('/' . preg_quote($match, '/') . '/', $new, $csv);
             }
         }
+
         $csv        = utf8_encode($csv);
         $csv_array  = explode("\n", $csv);
         $data       = array();
         $cell_total = 0;
         $row_count  = 0;
         $headers    = array();
+
         // Process each line:
         foreach($csv_array as $line) {
             $cell_count = 0;
@@ -240,11 +274,10 @@ class CSVUploadsControllerCSVUpload extends JControllerForm
             $row = array();
 
             $i = 0;
+
             foreach($cells as $cell) {
                 $cell_count++;
-                #$cell = trim(htmlentities($cell, ENT_QUOTES));
                 $cell = trim($cell);
-                // $cell = trim(html_characters_not_decoded(utf8_convert($cell)));
                 if ($row_count == 1) {
                     if (mb_strlen($cell) > 0) {
                         $cell_total = $cell_count;
@@ -262,15 +295,18 @@ class CSVUploadsControllerCSVUpload extends JControllerForm
                 }
                 $i++;
             }
+
             if (!$header_keys || $row_count == 1) {
                 $first = 0;
             } else {
                 $first = $headers[0];
             }
+
             if (mb_strlen($row[$first]) > 0) {
                 $data[] = $row;
             }
         }
+
         if ($header_keys) {
             unset($data[0]);
         }
@@ -286,14 +322,18 @@ class CSVUploadsControllerCSVUpload extends JControllerForm
      */
     public function arraycsv($data, $delimiter = ',', $enclosure = '"') {
         $handle = fopen('php://temp', 'r+');
+
         foreach ($data as $line) {
             fputcsv($handle, $line, $delimiter, $enclosure);
         }
+
         rewind($handle);
         $contents = '';
+
         while (!feof($handle)) {
             $contents .= fread($handle, 8192);
         }
+
         fclose($handle);
         return $contents;
     }
@@ -335,5 +375,79 @@ class CSVUploadsControllerCSVUpload extends JControllerForm
         }
 
         return (int) $val;
+    }
+
+    /**
+     * Strips punctuation from a string
+     *
+     * @param string $text
+     * @return string
+     * @access public
+     */
+    public static function stripPunctuation($text)
+    {
+        if (!is_string($text)) {
+            trigger_error('Function \'strip_punctuation\' expects argument 1 to be an string', E_USER_ERROR);
+            return false;
+        }
+        $text = html_entity_decode($text, ENT_QUOTES);
+
+        $urlbrackets = '\[\]\(\)';
+        $urlspacebefore = ':;\'_\*%@&?!' . $urlbrackets;
+        $urlspaceafter = '\.,:;\'\-_\*@&\/\\\\\?!#' . $urlbrackets;
+        $urlall = '\.,:;\'\-_\*%@&\/\\\\\?!#' . $urlbrackets;
+
+        $specialquotes = '\'"\*<>';
+
+        $fullstop = '\x{002E}\x{FE52}\x{FF0E}';
+        $comma = '\x{002C}\x{FE50}\x{FF0C}';
+        $arabsep = '\x{066B}\x{066C}';
+        $numseparators = $fullstop . $comma . $arabsep;
+
+        $numbersign = '\x{0023}\x{FE5F}\x{FF03}';
+        $percent = '\x{066A}\x{0025}\x{066A}\x{FE6A}\x{FF05}\x{2030}\x{2031}';
+        $prime = '\x{2032}\x{2033}\x{2034}\x{2057}';
+        $nummodifiers = $numbersign . $percent . $prime;
+        $return = preg_replace(
+        array(
+            // Remove separator, control, formatting, surrogate,
+            // open/close quotes.
+            '/[\p{Z}\p{Cc}\p{Cf}\p{Cs}\p{Pi}\p{Pf}]/u',
+            // Remove other punctuation except special cases
+            '/\p{Po}(?<![' . $specialquotes .
+            $numseparators . $urlall . $nummodifiers . '])/u',
+            // Remove non-URL open/close brackets, except URL brackets.
+            '/[\p{Ps}\p{Pe}](?<![' . $urlbrackets . '])/u',
+            // Remove special quotes, dashes, connectors, number
+            // separators, and URL characters followed by a space
+            '/[' . $specialquotes . $numseparators . $urlspaceafter .
+            '\p{Pd}\p{Pc}]+((?= )|$)/u',
+            // Remove special quotes, connectors, and URL characters
+            // preceded by a space
+            '/((?<= )|^)[' . $specialquotes . $urlspacebefore . '\p{Pc}]+/u',
+            // Remove dashes preceded by a space, but not followed by a number
+            '/((?<= )|^)\p{Pd}+(?![\p{N}\p{Sc}])/u',
+            // Remove consecutive spaces
+            '/ +/',
+            ), ' ', $text);
+        $return = str_replace('/', '_', $return);
+        return str_replace("'", '', $return);
+    }
+
+    /**
+     * Creates an HTML-friendly string for use in id's
+     *
+     * @param string $text
+     * @return string
+     * @access public
+     */
+    public function htmlID($text)
+    {
+        if (!is_string($text)) {
+            trigger_error('Function \'html_id\' expects argument 1 to be an string', E_USER_ERROR);
+            return false;
+        }
+        $return = strtolower(trim(preg_replace('/\s+/', '-', self::stripPunctuation($text))));
+        return $return;
     }
 }
