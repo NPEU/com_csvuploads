@@ -186,7 +186,7 @@ class CSVUploadsControllerCSVUpload extends JControllerForm
 
                             // Pass to any plugins looking to take action on the JSON data.
                             // Note this may or may not transform the actual data itself.
-                            $results = $dispatcher->trigger('onBeforeSaveJSON', array(&$json, $filename1));
+                            $results = $dispatcher->trigger('onBeforeSaveJSON', array(&$json, $json_filename));
                             JFile::write($json_path . $json_filename, $json);
 
                             $app->enqueueMessage(sprintf(JText::_('COM_CSVUPLOADS_MESSAGE_JSON_SUCCESS'), $json_filename));
