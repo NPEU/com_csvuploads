@@ -120,7 +120,7 @@ class CSVUploadsControllerCSVUpload extends JControllerForm
 
                 // Pass to any plugins looking to take action on the CSV data.
                 // Note this may or may not transform the actual data itself.
-                $event_results = $dispatcher->trigger('onAfterLoadCSV', array(&$csv_data, $filename1));
+                $event_results = $dispatcher->trigger('onAfterLoadCSV', array(&$csv_data, $filename2));
 
                 if (in_array('STOP', $event_results)) {
                     $save_to_csv_file = false;
