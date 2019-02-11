@@ -22,6 +22,14 @@
             default="csv"
             validate="createfolder"
         />
+        <field
+            name="jsonfolder"
+            type="text"
+            label="COM_CSVUPLOADS_CONFIG_JSON_FOLDER_LABEL"
+            description="COM_CSVUPLOADS_CONFIG_JSON_FOLDER_DESC"
+            default="json"
+            validate="createfolder"
+        />
     </fieldset>
        <fieldset
         name="categories"

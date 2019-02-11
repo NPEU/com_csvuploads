@@ -29,7 +29,7 @@ class CSVUploadsController extends JControllerLegacy
     function display($cachable = false, $urlparams = false)
     {
         // Set default view if not set
-        JFactory::getApplication()->input->set('view', JFactory::getApplication()->input->get('view', 'sendinvites'));
+        JFactory::getApplication()->input->set('view', JFactory::getApplication()->input->get('view', 'csvuploads'));
 
         $session = JFactory::getSession();
         $registry = $session->get('registry');

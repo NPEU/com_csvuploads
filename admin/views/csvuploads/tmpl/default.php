@@ -17,7 +17,7 @@ $listOrder = $this->escape($this->filter_order);
 $listDirn  = $this->escape($this->filter_order_Dir);
 
 ?>
-<form action="index.php?option=com_csvuploads&view=records" method="post" id="adminForm" name="adminForm">
+<form action="index.php?option=com_csvuploads&view=csvuploads" method="post" id="adminForm" name="adminForm">
     <?php if (!empty($this->items)): ?>
     <div class="row-fluid">
         <div class="span6">
@@ -25,7 +25,12 @@ $listDirn  = $this->escape($this->filter_order_Dir);
             <?php
                 echo JLayoutHelper::render(
                     'joomla.searchtools.default',
-                    array('view' => $this)
+                    array(
+                        'view'    => $this,
+                        'options' => array(
+                            'filterButton' => false
+                        )
+                    )
                 );
             ?>
         </div>
@@ -33,7 +38,7 @@ $listDirn  = $this->escape($this->filter_order_Dir);
     <table class="table table-striped table-hover">
         <thead>
             <tr>
-                <th width="2%"><?php echo JText::_('COM_CSVUPLOADS_NUM'); ?></th>
+                <th width="2%"><?php echo JText::_('COM_CSVUPLOADS_HEADING_NUM'); ?></th>
                 <th width="4%">
                     <?php echo JHtml::_('grid.checkall'); ?>
                 </th>
@@ -44,7 +49,7 @@ $listDirn  = $this->escape($this->filter_order_Dir);
                     <?php echo JHtml::_('grid.sort', 'COM_CSVUPLOADS_HEADING_DESCRIPTION', 'description', $listDirn, $listOrder); ?>
                 </th>
                 <th width="30%">
-                    <?php echo JHtml::_('grid.sort', 'COM_CSVUPLOADS_HEADING_CONTACT', 'contact', $listDirn, $listOrder); ?>
+                    <?php echo JHtml::_('grid.sort', 'COM_CSVUPLOADS_HEADING_CONTACT', 'contact_name', $listDirn, $listOrder); ?>
                 </th>
                 <th width="10%">
                     <?php echo JHtml::_('grid.sort', 'COM_CSVUPLOADS_HEADING_CREATED_DATE', 'created', $listDirn, $listOrder); ?>
@@ -63,7 +68,7 @@ $listDirn  = $this->escape($this->filter_order_Dir);
         </tfoot>
         <tbody>
         <?php foreach ($this->items as $i => $item) :
-            $link = JRoute::_('index.php?option=com_csvuploads&task=record.edit&id=' . $item->id);
+            $link = JRoute::_('index.php?option=com_csvuploads&task=csvupload.edit&id=' . $item->id);
             $canCheckin = $user->authorise('core.manage', 'com_checkin') || $item->checked_out == $user->get('id') || $item->checked_out == 0;
             $canEdit    = $user->authorise('core.edit', 'com_content.category.' . $item->catid);
         ?>

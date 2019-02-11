@@ -85,8 +85,8 @@ class CSVUploadsControllerCSVUpload extends JControllerForm
         $files = JFactory::getApplication()->input->files->get($control);
 
         if(!empty($files['file']['name'])){
-            $filename1    = str_replace(' ', '-', JFile::makeSafe($data['name'])) . '-' . time() . '.csv';
-            $filename2    = str_replace(' ', '-', JFile::makeSafe($data['name'])) . '.csv';
+            $filename1    = str_replace(' ', '-', strtolower(JFile::makeSafe($data['name']))) . '-' . time() . '.csv';
+            $filename2    = str_replace(' ', '-', strtolower(JFile::makeSafe($data['name']))) . '.csv';
             $data['file'] = $filename2;
             $max          = $this->return_bytes(ini_get('upload_max_filesize'));
 
@@ -120,7 +120,11 @@ class CSVUploadsControllerCSVUpload extends JControllerForm
 
                 // Pass to any plugins looking to take action on the CSV data.
                 // Note this may or may not transform the actual data itself.
-                $save_to_csv_file = $dispatcher->trigger('onAfterLoadCSV', array(&$csv_data, $filename1));
+                $event_results = $dispatcher->trigger('onAfterLoadCSV', array(&$csv_data, $filename1));
+
+                if (in_array('STOP', $event_results)) {
+                    $save_to_csv_file = false;
+                }
 
                 if ($save_to_csv_file) {
                     $csv_folder_path = JPATH_ROOT . '/' . $uploadfolder . '/' . $csvfolder . '/';
@@ -128,7 +132,7 @@ class CSVUploadsControllerCSVUpload extends JControllerForm
                         mkdir($csv_folder_path);
                     }
 
-                    $csv_path     = $csv_folder_path . $catfolder . '/';
+                    $csv_path = $csv_folder_path . $catfolder . '/';
                     if (!file_exists($csv_path)) {
                         mkdir($csv_path);
                     }
@@ -138,7 +142,7 @@ class CSVUploadsControllerCSVUpload extends JControllerForm
                         mkdir($json_folder_path);
                     }
 
-                    $json_path     = $json_folder_path . $catfolder . '/';
+                    $json_path = $json_folder_path . $catfolder . '/';
                     if (!file_exists($json_path)) {
                         mkdir($json_path);
                     }
@@ -155,8 +159,9 @@ class CSVUploadsControllerCSVUpload extends JControllerForm
                             $json = json_encode($csv_data);
 
                             if (!empty($data['options']['json_format'])) {
-                                // We need to parse this to format the json:
+                                $twig_data = $csv_data;
 
+                                // We need to parse this to format the json:
                                 $loader = new Twig_Loader_Array(array('tpl' => $data['options']['json_format']));
                                 $twig   = new Twig_Environment($loader);
 
@@ -170,7 +175,11 @@ class CSVUploadsControllerCSVUpload extends JControllerForm
                                 });
                                 $twig->addFilter($html_id_filter);
 
-                                $json = $twig->render('tpl', array('data' => $csv_data));
+                                $json = $twig->render('tpl', array('data' => $twig_data));
+
+                                // Encode then re-decode to produce tidier JSON:
+                                $json = json_decode($json, true);
+                                $json = json_encode($json, true);
                             }
 
                             $json_filename = str_replace('.csv', '.json', $filename2);
@@ -179,6 +188,8 @@ class CSVUploadsControllerCSVUpload extends JControllerForm
                             // Note this may or may not transform the actual data itself.
                             $results = $dispatcher->trigger('onBeforeSaveJSON', array(&$json, $filename1));
                             JFile::write($json_path . $json_filename, $json);
+
+                            $app->enqueueMessage(sprintf(JText::_('COM_CSVUPLOADS_MESSAGE_JSON_SUCCESS'), $json_filename));
                         }
 
                         // Copy the the file to overwrite the unstamped version:

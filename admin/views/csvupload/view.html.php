@@ -12,7 +12,7 @@ defined('_JEXEC') or die;
 /**
  * CSVUploads Record View
  */
-class CSVUploadsViewRecord extends JViewLegacy
+class CSVUploadsViewCSVUpload extends JViewLegacy
 {
     /**
      * View form
@@ -45,7 +45,7 @@ class CSVUploadsViewRecord extends JViewLegacy
         $this->form   = $this->get('Form');
         $this->item   = $this->get('Item');
         #$this->script = $this->get('Script');
-        $this->is_new = (bool) !$item->id;
+        $this->is_new = (bool) !$this->item->id;
 
         // Check for errors.
         if (count($errors = $this->get('Errors'))) {
@@ -113,12 +113,6 @@ class CSVUploadsViewRecord extends JViewLegacy
 
 
 
-        JToolBarHelper::title($title, 'record');
-        JToolBarHelper::save('record.save');
-        JToolBarHelper::cancel(
-            'record.cancel',
-            $isNew ? 'JTOOLBAR_CANCEL' : 'JTOOLBAR_CLOSE'
-        );
     }
     /**
      * Method to set up the document properties
@@ -131,9 +125,10 @@ class CSVUploadsViewRecord extends JViewLegacy
         $document = JFactory::getDocument();
         $document->setTitle($isNew ? JText::_('COM_CSVUPLOADS_RECORD_CREATING') :
                 JText::_('COM_CSVUPLOADS_RECORD_EDITING'));
-        $document->addScript(JURI::root() . $this->script);
+        #$document->addScript(JURI::root() . $this->script);
         $document->addScript(JURI::root() . "/administrator/components/com_csvuploads"
                                           . "/views/com_csvupload/submitbutton.js");
+        $document->addStyleDeclaration('textarea.monospace {font-family: monospace}');
         JText::script('COM_CSVUPLOADS_RECORD_ERROR_UNACCEPTABLE');
     }
 }

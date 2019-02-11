@@ -12,7 +12,7 @@ defined('_JEXEC') or die;
 /**
  * CSVUploads Records View
  */
-class CSVUploadsViewRecords extends JViewLegacy
+class CSVUploadsViewCSVUploads extends JViewLegacy
 {
     /**
      * Display the CSVUploads view
@@ -31,7 +31,7 @@ class CSVUploadsViewRecords extends JViewLegacy
         $this->items            = $this->get('Items');
         $this->pagination       = $this->get('Pagination');
         $this->state            = $this->get('State');
-        $this->filter_order     = $app->getUserStateFromRequest($context.'filter_order', 'filter_order', 'record', 'cmd');
+        $this->filter_order     = $app->getUserStateFromRequest($context.'filter_order', 'filter_order', 'name', 'cmd');
         $this->filter_order_Dir = $app->getUserStateFromRequest($context.'filter_order_Dir', 'filter_order_Dir', 'asc', 'cmd');
         $this->filterForm       = $this->get('FilterForm');
         $this->activeFilters    = $this->get('ActiveFilters');
@@ -70,11 +70,9 @@ class CSVUploadsViewRecords extends JViewLegacy
             $title .= "<span style='font-size: 0.5em; vertical-align: middle;'> (" . $this->pagination->total . ")</span>";
         }
 
-        JToolBarHelper::title($title, 'record');
+        JToolBarHelper::title($title, 'csvuploads');
 
-        $canDo = $this->canDo;
-
-
+        $canDo = CSVUploadsHelper::getActions();
 
 
         if (!empty($this->items)) {

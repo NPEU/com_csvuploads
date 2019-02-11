@@ -22,7 +22,7 @@ abstract class CSVUploadsHelper
         // Set some global property
         $document = JFactory::getDocument();
 
-        $document->addStyleDeclaration('.icon-userinvites:before {content: "\e022";}');
+        $document->addStyleDeclaration('.icon-csvuploads:before {content: "\e022";}');
     }
 
     /**

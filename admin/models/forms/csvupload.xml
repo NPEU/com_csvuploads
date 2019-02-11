@@ -91,17 +91,6 @@
             class="adminform"
         >
             <field
-                name="processor"
-                type="list"
-                label="COM_CSVUPLOADS_PROCESSOR_LABEL"
-                description="COM_CSVUPLOADS_PROCESSOR_DESC"
-                default="none"
-            >
-                <option value="none">COM_CSVUPLOADS_PROCESSOR_OPTION_NONE</option>
-                <option value="custom">COM_CSVUPLOADS_PROCESSOR_OPTION_CUSTOM</option>
-                <option value="json">COM_CSVUPLOADS_PROCESSOR_OPTION_JSON</option>
-            </field>
-            <field
                 name="namedkeys"
                 type="radio"
                 label="COM_CSVUPLOADS_NAMED_KEYS_LABEL"
@@ -112,6 +101,26 @@
                 <option value="0">COM_CSVUPLOADS_NAMED_KEYS_0_LABEL</option>
                 <option value="1">COM_CSVUPLOADS_NAMED_KEYS__1_LABEL</option>
             </field>
+            <field
+                name="processor"
+                type="radio"
+                label="COM_CSVUPLOADS_PROCESSOR_LABEL"
+                description="COM_CSVUPLOADS_PROCESSOR_DESC"
+                class="btn-group"
+                default="none"
+            >
+                <option value="none">COM_CSVUPLOADS_PROCESSOR_OPTION_NONE</option>
+                <option value="json">COM_CSVUPLOADS_PROCESSOR_OPTION_JSON</option>
+            </field>
+            <field
+                name="json_format"
+                type="textarea"
+                class="inputbox monospace"
+                rows="5"
+                cols="30"
+                label="COM_CSVUPLOADS_JSON_FORMAT_LABEL"
+                description="COM_CSVUPLOADS_JSON_FORMAT_DESC"
+            />
         </fieldset>
 
     </fields>

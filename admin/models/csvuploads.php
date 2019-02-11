@@ -10,7 +10,7 @@
 defined('_JEXEC') or die;
 
 // Import the Joomla modellist library
-jimport('joomla.application.component.modellist');
+#jimport('joomla.application.component.modellist');
 
 /**
  * CSVUploads Records List Model
@@ -24,20 +24,20 @@ class CSVUploadsModelCSVUploads extends JModelList
      *
      * @see     JController
      */
-    /*public function __construct($config = array())
+    public function __construct($config = array())
     {
         if (empty($config['filter_fields']))
         {
             $config['filter_fields'] = array(
-                'id',
-                'users_name',
-                'message',
-                'published'
+                'name',
+                'description',
+                'contact',
+                'id'
             );
         }
 
         parent::__construct($config);
-    }*/
+    }
 
     /**
      * Method to build an SQL query to load the list data.
@@ -55,33 +55,37 @@ class CSVUploadsModelCSVUploads extends JModelList
               ->from($db->quoteName('#__csvuploads') . ' AS a');
               
         // Join over the users for the checked out user.
-        $query->select('uc.name AS editor')
-            ->join('LEFT', '#__users AS uc ON uc.id=a.checked_out');
+        $query->select('uch.name AS editor')
+              ->join('LEFT', '#__users AS uch ON uch.id = a.checked_out');
 
+        // Join the users for the contact:
+		$query->select('uc.name AS contact_name, uc.email AS contact_email')
+		      ->join('LEFT', '#__users AS uc ON uc.id = a.contact_user_id');
+            
         // Filter: like / search
         $search = $this->getState('filter.search');
 
         if (!empty($search))
         {
             $like = $db->quote('%' . $search . '%');
-            $query->where('a.title LIKE ' . $like);
-            $query->where('a.slug LIKE ' . $like);
+            $query->where('a.name LIKE ' . $like);
+            $query->where('a.description LIKE ' . $like);
         }
 
         // Filter by published state
-        $published = $this->getState('filter.published');
+        /*$published = $this->getState('filter.created');
 
         if (is_numeric($published))
         {
-            $query->where('a.published = ' . (int) $published);
+            $query->where('a.created = ' . (int) $published);
         }
         elseif ($published === '')
         {
-            $query->where('(a.published IN (0, 1))');
-        }
+            $query->where('(a.created IN (0, 1))');
+        }*/
 
         // Add the list ordering clause.
-        $orderCol   = $this->state->get('list.ordering', 'a.title');
+        $orderCol   = $this->state->get('list.ordering', 'a.name');
         $orderDirn  = $this->state->get('list.direction', 'asc');
 
         $query->order($db->escape($orderCol) . ' ' . $db->escape($orderDirn));
