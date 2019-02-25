@@ -77,8 +77,9 @@ class CSVUploadsControllerCSVUpload extends JControllerForm
         $recordId     = $model->getState($this->context . '.id');
         $params       = clone JComponentHelper::getParams($option);
         $uploadfolder = $params->get('uploadfolder');
-        $csvfolder    = $params->get('csvfolder');
-        $jsonfolder   = $params->get('jsonfolder');
+        $csvfolder    = $params->get('csvfolder', 'csv');
+        $jsonfolder   = $params->get('jsonfolder', 'json');
+
         $catfolder    = $db->loadResult();
 
         // Upload the file:
@@ -112,17 +113,17 @@ class CSVUploadsControllerCSVUpload extends JControllerForm
                 $csv_data = $this->csvarray(file_get_contents($src), (bool) $data['options']['namedkeys']);
 
                 // This feels a bit hacky, but it allows plugins that repsond to 'onAfterLoadCSV' to
-                // return false and prevent the storage of the CSV files at all.
-                // For example your plugin may need to intercept the default behavior in order to save
-                // the data to a database instead, and in such a case it may be desirable not to also
-                // have the CSV file stored.
+                // return 'STOP' and prevent the storage of the CSV files at all.
+                // For example your plugin may need to intercept the default behavior in order to
+                // save the data to a database instead, and in such a case it may be desirable not
+                // to also have the CSV file stored.
                 $save_to_csv_file = true;
 
                 // Pass to any plugins looking to take action on the CSV data.
                 // Note this may or may not transform the actual data itself.
                 $event_results = $dispatcher->trigger('onAfterLoadCSV', array(&$csv_data, $filename2));
 
-                if (in_array('STOP', $event_results)) {
+                if (in_array('STOP', $event_results, true)) {
                     $save_to_csv_file = false;
                 }
 
@@ -187,6 +188,7 @@ class CSVUploadsControllerCSVUpload extends JControllerForm
                             // Pass to any plugins looking to take action on the JSON data.
                             // Note this may or may not transform the actual data itself.
                             $results = $dispatcher->trigger('onBeforeSaveJSON', array(&$json, $json_filename));
+
                             JFile::write($json_path . $json_filename, $json);
 
                             $app->enqueueMessage(sprintf(JText::_('COM_CSVUPLOADS_MESSAGE_JSON_SUCCESS'), $json_filename));
