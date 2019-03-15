@@ -21,7 +21,7 @@ class JFormFieldStaff extends JFormFieldList
      *
      * @var     string
      */
-    protected $type = 'Staff';
+    public $type = 'Staff';
 
     /**
      * Method to get the field options.
