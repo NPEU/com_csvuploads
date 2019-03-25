@@ -129,23 +129,41 @@ class CSVUploadsControllerCSVUpload extends JControllerForm
 
                 if ($save_to_csv_file) {
                     $csv_folder_path = JPATH_ROOT . '/' . $uploadfolder . '/' . $csvfolder . '/';
+
+                    $file_perms = octdec(substr(sprintf('%o', fileperms(__FILE__)), -4));
+                    $file_own   = posix_getpwuid(fileowner(__FILE__));
+                    $file_grp   = posix_getgrgid(filegroup(__FILE__));
+
                     if (!file_exists($csv_folder_path)) {
                         mkdir($csv_folder_path);
+                        chmod($csv_folder_path, $file_perms);
+                        chown($csv_folder_path, $file_own);
+                        chgrp($csv_folder_path, $file_grp);
+
                     }
 
                     $csv_path = $csv_folder_path . $catfolder . '/';
                     if (!file_exists($csv_path)) {
                         mkdir($csv_path);
+                        chmod($csv_path, $file_perms);
+                        chown($csv_path, $file_own);
+                        chgrp($csv_path, $file_grp);
                     }
 
                     $json_folder_path = JPATH_ROOT . '/' . $uploadfolder . '/' . $jsonfolder . '/';
                     if (!file_exists($json_folder_path)) {
                         mkdir($json_folder_path);
+                        chmod($json_folder_path, $file_perms);
+                        chown($json_folder_path, $file_own);
+                        chgrp($json_folder_path, $file_grp);
                     }
 
                     $json_path = $json_folder_path . $catfolder . '/';
                     if (!file_exists($json_path)) {
                         mkdir($json_path);
+                        chmod($json_path, $file_perms);
+                        chown($json_path, $file_own);
+                        chgrp($json_path, $file_grp);
                     }
 
                     $csv_file_1 = $csv_path . $filename1;
