@@ -1,7 +1,7 @@
 {
-    "name": "npeu/mod_brochure",
+    "name": "npeu/com_csvuploads",
     "type": "project",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "description": "This file lists all the PHP packages required for the project.",
     "require": {
         "twig/twig": "2.0"
