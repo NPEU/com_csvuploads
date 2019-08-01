@@ -9,11 +9,10 @@
 
 defined('_JEXEC') or die;
 
-// Import Joomla modelitem library
-jimport('joomla.application.component.modeladmin');
+use Joomla\String\StringHelper;
 
 /**
- * CSVUploads Record Model
+ * CSVUploads CSVUpload Model
  */
 class CSVUploadsModelCSVUpload extends JModelAdmin
 {
@@ -26,25 +25,9 @@ class CSVUploadsModelCSVUpload extends JModelAdmin
      *
      * @return  JTable  A JTable object
      */
-    public function getTable($type = 'csvuploads', $prefix = 'CSVUploadsTable', $config = array())
+    public function getTable($type = 'CSVUploads', $prefix = 'CSVUploadsTable', $config = array())
     {
         return JTable::getInstance($type, $prefix, $config);
-    }
-
-    /**
-     * Method override to check if you can edit an existing record.
-     *
-     * @param   array   $data   An array of input data.
-     * @param   string  $key    The name of the key for the primary key.
-     *
-     * @return  boolean
-     */
-    protected function allowEdit($data = array(), $key = 'id')
-    {
-        // Check specific edit permission then general edit permission.
-        return JFactory::getUser()->authorise('core.edit', 'com_csvupload.csvupload.' .
-            ((int) isset($data[$key]) ? $data[$key] : 0))
-            or parent::allowEdit($data, $key);
     }
 
     /**
@@ -71,52 +54,35 @@ class CSVUploadsModelCSVUpload extends JModelAdmin
         {
             return false;
         }
-        return $form;
-    }
 
-    /**
-     * Method to get the script that have to be included on the form
-     *
-     * @return string   Script files
-     */
-    public function getScript()
-    {
-        #return 'administrator/components/com_helloworld/models/forms/helloworld.js';
-        return '';
-    }
-
-    /**
-     * Method to prepare the saved data.
-     *
-     * @param   array  $data  The form data.
-     *
-     * @return  boolean  True on success, False on error.
-     */
-    public function save($data)
-    {
-        $is_new      = empty($data['id']);
-
-        // The following is generally useful for any app, but you'll need to make sure the database
-        // schema includes these fields:
-        $user        = JFactory::getUser();
-        $user_id     = $user->get('id');
-        $date_format = 'Y-m-d H:i:s A';
-
-        $prefix      = $is_new ? 'created' : 'modified';
-
-        $data[$prefix]         = date($date_format, time()); // created/modified
-        $data[$prefix . '_by'] = $user_id; // created_by/modified_by
-
-        $param_data = array();
-        foreach ($data as $key => $value) {
-            if (is_array($value)) {
-                $param_data = array_merge($param_data, $data[$key]);
-                unset($data[$key]);
-            }
+        // Determine correct permissions to check.
+        if ($this->getState('csvupload.id'))
+        {
+            // Existing record. Can only edit in selected categories.
+            $form->setFieldAttribute('catid', 'action', 'core.edit');
         }
-        $data['params'] = $param_data;
+        else
+        {
+            // New record. Can only create in selected categories.
+            $form->setFieldAttribute('catid', 'action', 'core.create');
+        }
 
-        return parent::save($data);
+        // Modify the form based on access controls.
+        if (!$this->canEditState((object) $data))
+        {
+            // Disable fields for display.
+            $form->setFieldAttribute('state', 'disabled', 'true');
+            $form->setFieldAttribute('publish_up', 'disabled', 'true');
+            $form->setFieldAttribute('publish_down', 'disabled', 'true');
+
+            // Disable fields while saving.
+            // The controller has already verified this is a record you can edit.
+            $form->setFieldAttribute('state', 'filter', 'unset');
+            $form->setFieldAttribute('publish_up', 'filter', 'unset');
+            $form->setFieldAttribute('publish_down', 'filter', 'unset');
+        }
+
+        return $form;
     }
 
     /**
@@ -132,16 +98,98 @@ class CSVUploadsModelCSVUpload extends JModelAdmin
             array()
         );
 
-        if (empty($data))
-        {
+        if (empty($data)) {
             $data = $this->getItem();
-            if (!empty($data->id)) {
-                $data->options = $data->params;
-                unset($data->params);
-            }
         }
 
         return $data;
     }
 
+    /**
+     * Prepare and sanitise the table data prior to saving.
+     *
+     * @param   JTable  $table  A reference to a JTable object.
+     *
+     * @return  void
+     */
+    protected function prepareTable($table)
+    {
+        $date = JFactory::getDate();
+        $user = JFactory::getUser();
+
+        $table->name = htmlspecialchars_decode($table->name, ENT_QUOTES);
+
+        if (empty($table->id))
+        {
+            // Set the values
+            $table->modified    = $date->toSql();
+            $table->modified_by = $user->id;
+        }
+    }
+
+    /**
+     * Method to prepare the saved data.
+     *
+     * @param   array  $data  The form data.
+     *
+     * @return  boolean  True on success, False on error.
+     */
+    public function save($data)
+    {
+        $is_new = empty($data['id']);
+        $input  = JFactory::getApplication()->input;
+        $app    = JFactory::getApplication();
+
+        // Get parameters:
+        $params = JComponentHelper::getParams(JRequest::getVar('option'));
+
+        // For reference if needed:
+        // By default we're only looking for and acting upon the 'email admins' setting.
+        // If any other settings are related to this save method, add them here.
+        /*$email_admins_string = $params->get('email_admins');
+        if (!empty($email_admins_string) && $is_new) {
+            $email_admins = explode(PHP_EOL, trim($email_admins_string));
+            foreach ($email_admins as $email) {
+                // Sending email as an array to make it easier to expand; it's quite likely that a
+                // real app would need more info here.
+                $email_data = array('email' => $email);
+                $this->_sendEmail($email_data);
+            }
+        }*/
+
+        // Alter the name for save as copy
+        if ($app->input->get('task') == 'save2copy')
+        {
+            $name          = $this->generateNewTitle(null, null, $data['name']);
+            $data['name']  = $name;
+            $data['state'] = 0;
+        }
+
+        return parent::save($data);
+    }
+
+    /**
+     * Method to change the title.
+     *
+     * @param   integer  $category_id  The id of the parent. Not used.
+     * @param   string   $alias        The alias. Not used.
+     * @param   string   $name         The title.
+     *
+     * @return  array  Contains the modified title and alias.
+     */
+    protected function generateNewTitle($category_id, $alias, $name)
+    {
+        // Alter the name
+        $table = $this->getTable();
+
+        while ($table->load(array('name' => $name)))
+        {
+            if ($name == $table->name)
+            {
+                $name = JString::increment($name);
+            }
+        }
+
+        return $name;
+    }
 }

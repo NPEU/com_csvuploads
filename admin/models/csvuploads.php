@@ -9,11 +9,8 @@
 
 defined('_JEXEC') or die;
 
-// Import the Joomla modellist library
-#jimport('joomla.application.component.modellist');
-
 /**
- * CSVUploads Records List Model
+ * CSVUploads List Model
  */
 class CSVUploadsModelCSVUploads extends JModelList
 {
@@ -29,14 +26,68 @@ class CSVUploadsModelCSVUploads extends JModelList
         if (empty($config['filter_fields']))
         {
             $config['filter_fields'] = array(
-                'name',
-                'description',
-                'contact',
-                'id'
+                'id', 'a.id',
+                'name', 'a.name',
+                'description', 'a.description',
+                'params', 'a.params',
+                'state', 'a.state',
+                'contact_user_id', 'a.contact_user_id',
+                'c.name', 'contact_name',
+                'c.username', 'contact_username',
+                'c.email', 'contact_email',
+                'created', 'a.created',
+                'created_by', 'a.created_by',
+                'modified', 'a.modified',
+                'modified_by', 'a.modified_by',
+                'checked_out', 'a.checked_out',
+                'checked_out_time', 'a.checked_out_time',
+                'access', 'a.access'
             );
         }
 
         parent::__construct($config);
+    }
+
+    /**
+     * Method to auto-populate the model state.
+     *
+     * @param   string  $ordering   An optional ordering field.
+     * @param   string  $direction  An optional direction (asc|desc).
+     *
+     * @return  void
+     *
+     * @note    Calling getState in this method will result in recursion.
+     */
+    protected function populateState($ordering = 'a.name', $direction = 'ASC')
+    {
+        // Load the filter state.
+        $this->setState('filter.search', $this->getUserStateFromRequest($this->context . '.filter.search', 'filter_search', '', 'string'));
+        $this->setState('filter.published', $this->getUserStateFromRequest($this->context . '.filter.published', 'filter_published', '', 'string'));
+
+        // Load the parameters.
+        $params = JComponentHelper::getParams('com_csvuploads');
+        $this->setState('params', $params);
+
+        // List state information.
+        parent::populateState($ordering, $direction);
+    }
+
+    /**
+     * Method to get a store id based on model configuration state.
+     *
+     * This is necessary because the model is used by the component and
+     * different modules that might need different sets of data or different
+     * ordering requirements.
+     *
+     * @param   string  $id  A prefix for the store id.
+     *
+     * @return  string  A store id.
+     */
+    protected function getStoreId($id = '')
+    {
+        // Compile the store id.
+        $id .= ':' . $this->getState('filter.search');
+        return parent::getStoreId($id);
     }
 
     /**
@@ -50,17 +101,24 @@ class CSVUploadsModelCSVUploads extends JModelList
         $db    = JFactory::getDbo();
         $query = $db->getQuery(true);
 
-        // Create the base select statement.
-        $query->select('a.*')
-              ->from($db->quoteName('#__csvuploads') . ' AS a');
-              
-        // Join over the users for the checked out user.
-        $query->select('uch.name AS editor')
-              ->join('LEFT', '#__users AS uch ON uch.id = a.checked_out');
+        // Select the required fields from the table.
+        $query->select(
+            $this->getState(
+                'list.select',
+                'a.id, a.name, a.catid, a.contact_user_id, a.description, a.checked_out, a.checked_out_time, a.created_by, a.state'
+            )
+        );
+        $query->from($db->quoteName('#__csvuploads', 'a'));
 
-        // Join the users for the contact:
-		$query->select('uc.name AS contact_name, uc.email AS contact_email')
-		      ->join('LEFT', '#__users AS uc ON uc.id = a.contact_user_id');
+        // Join over the users for the checked out user.
+        $query->select('uc.name AS editor')
+            ->join('LEFT', '#__users AS uc ON uc.id = a.checked_out');
+
+        // Join over the users for the contact user.
+        $query->select($db->quoteName('c.name', 'contact_name'))
+            ->select($db->quoteName('c.username', 'contact_username'))
+            ->select($db->quoteName('c.email', 'contact_email'))
+            ->join('LEFT', $db->quoteName('#__users', 'c') . ' ON ' . $db->qn('c.id') . ' = ' . $db->qn('a.contact_user_id'));
             
         // Filter: like / search
         $search = $this->getState('filter.search');
@@ -73,20 +131,20 @@ class CSVUploadsModelCSVUploads extends JModelList
         }
 
         // Filter by published state
-        /*$published = $this->getState('filter.created');
+        $published = $this->getState('filter.published');
 
         if (is_numeric($published))
         {
-            $query->where('a.created = ' . (int) $published);
+            $query->where($db->quoteName('a.state') . ' = ' . (int) $published);
         }
         elseif ($published === '')
         {
-            $query->where('(a.created IN (0, 1))');
-        }*/
+            $query->where('(' . $db->quoteName('a.state') . ' IN (0, 1))');
+        }
 
         // Add the list ordering clause.
         $orderCol   = $this->state->get('list.ordering', 'a.name');
-        $orderDirn  = $this->state->get('list.direction', 'asc');
+        $orderDirn  = $this->state->get('list.direction', 'ASC');
 
         $query->order($db->escape($orderCol) . ' ' . $db->escape($orderDirn));
 

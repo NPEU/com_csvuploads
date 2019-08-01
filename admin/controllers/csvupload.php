@@ -16,6 +16,20 @@ require_once dirname(__DIR__) . '/vendor/autoload.php';
  */
 class CSVUploadsControllerCSVUpload extends JControllerForm
 {
+        /**
+     * Constructor.
+     *
+     * @param   array  $config  An optional associative array of configuration settings.
+     *
+     * @see     \JControllerLegacy
+     * @throws  \Exception
+     */
+    public function __construct($config = array())
+    {
+        parent::__construct($config);
+        $this->view_list = 'csvuploads';
+    }
+
     /**
      * Method to check if you can edit record.
      *
@@ -85,7 +99,7 @@ class CSVUploadsControllerCSVUpload extends JControllerForm
         // Upload the file:
         $files = JFactory::getApplication()->input->files->get($control);
 
-        if(!empty($files['file']['name'])){
+        if (!empty($files['file']['name'])) {
             $filename1    = str_replace(' ', '-', strtolower(JFile::makeSafe($data['name']))) . '-' . time() . '.csv';
             $filename2    = str_replace(' ', '-', strtolower(JFile::makeSafe($data['name']))) . '.csv';
             $data['file'] = $filename2;
@@ -110,7 +124,7 @@ class CSVUploadsControllerCSVUpload extends JControllerForm
             if (in_array($files['file']['type'], $accept_types)) {
 
                 // Convert the CSV file to array:
-                $csv_data = $this->csvarray(file_get_contents($src), (bool) $data['options']['namedkeys']);
+                $csv_data = $this->csvarray(file_get_contents($src), (bool) $data['params']['namedkeys']);
 
                 // This feels a bit hacky, but it allows plugins that repsond to 'onAfterLoadCSV' to
                 // return 'STOP' and prevent the storage of the CSV files at all.
@@ -172,16 +186,16 @@ class CSVUploadsControllerCSVUpload extends JControllerForm
                     if (JFile::upload($src, $csv_file_1)) {
 
                         // Check for JSON processing:
-                        if (isset($data['options']) && !empty($data['options']['processor']) && $data['options']['processor'] == 'json') {
+                        if (isset($data['params']) && !empty($data['params']['processor']) && $data['params']['processor'] == 'json') {
 
                             // Convert to JSON:
                             $json = json_encode($csv_data);
 
-                            if (!empty($data['options']['json_format'])) {
+                            if (!empty($data['params']['json_format'])) {
                                 $twig_data = $csv_data;
 
                                 // We need to parse this to format the json:
-                                $loader = new Twig_Loader_Array(array('tpl' => $data['options']['json_format']));
+                                $loader = new Twig_Loader_Array(array('tpl' => $data['params']['json_format']));
                                 $twig   = new Twig_Environment($loader);
 
                                 // Add html_id filter:
@@ -248,6 +262,7 @@ class CSVUploadsControllerCSVUpload extends JControllerForm
                 return false;
             }
         }
+
         $app->input->post->set($control, $data);
 
         return parent::save($key, $urlVar);

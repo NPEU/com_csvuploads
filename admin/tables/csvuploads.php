@@ -9,23 +9,79 @@
 
 defined('_JEXEC') or die;
 
-// Import Joomla table library
-jimport('joomla.database.table');
-
 /**
  * CSVUploads Table class
  */
-class CSVUploadsTablecsvuploads extends JTable
+class CSVUploadsTableCSVUploads extends JTable
 {
+    /**
+     * Ensure the params is json encoded in the bind method
+     *
+     * @var    array
+     * @since  3.4
+     */
+    protected $_jsonEncode = array('params');
+
     /**
      * Constructor
      *
      * @param   JDatabaseDriver  &$db  A database connector object
      */
-    function __construct(&$db)
+    public function __construct(&$db)
     {
         parent::__construct('#__csvuploads', 'id', $db);
+
+        // Set the alias since the column is called state
+        $this->setColumnAlias('published', 'state');
     }
+
+    /**
+     * Overloaded check method to ensure data integrity.
+     *
+     * @return  boolean  True on success.
+     */
+    public function check()
+    {
+        // Check for valid name
+        if (trim($this->name) == '')
+        {
+            $this->setError(JText::_('COM_CSVUPLOADS_ERR_TABLES_TITLE'));
+            return false;
+        }
+
+        // Check for existing name
+        $db = $this->getDbo();
+
+        $query = $db->getQuery(true)
+            ->select($db->quoteName('id'))
+            ->from($db->quoteName('#__csvuploads'))
+            ->where($db->quoteName('name') . ' = ' . $db->quote($this->name));
+        $db->setQuery($query);
+
+        $xid = (int) $db->loadResult();
+
+        if ($xid && $xid != (int) $this->id)
+        {
+            $this->setError(JText::_('COM_CSVUPLOADS_ERR_TABLES_NAME'));
+
+            return false;
+        }
+
+        /*if (empty($this->alias))
+        {
+            $this->alias = $this->name;
+        }
+
+        $this->alias = JApplicationHelper::stringURLSafe($this->alias);
+
+        if (trim(str_replace('-', '', $this->alias)) == '')
+        {
+            $this->alias = JFactory::getDate()->format("Y-m-d-H-i-s");
+        }
+        */
+        return true;
+    }
+
     /**
      * Overloaded bind function
      *
@@ -55,50 +111,18 @@ class CSVUploadsTablecsvuploads extends JTable
      */
     public function load($pk = null, $reset = true)
     {
-        if (parent::load($pk, $reset)) {
+        if (parent::load($pk, $reset))
+        {
             // Convert the params field to a registry.
             $params = new JRegistry;
             $params->loadString($this->params, 'JSON');
 
             $this->params = $params;
             return true;
-        } else {
+        }
+        else
+        {
             return false;
         }
-    }
-
-    /**
-     * Method to compute the default name of the asset.
-     * The default name is in the form `table_name.id`
-     * where id is the value of the primary key of the table.
-     *
-     * @return  string
-     */
-    protected function _getAssetName()
-    {
-        $k = $this->_tbl_key;
-        return 'com_csvuploads.csvupload.'.(int) $this->$k;
-    }
-
-    /**
-     * Method to return the title to use for the asset table.
-     *
-     * @return  string
-     */
-    protected function _getAssetTitle()
-    {
-        return $this->title;
-    }
-
-    /**
-     * Get the parent asset id for the record
-     *
-     * @return  int
-     */
-    protected function _getAssetParentId(JTable $table = null, $id = null)
-    {
-        $asset = JTable::getInstance('Asset');
-        $asset->loadByName('com_csvuploads');
-        return $asset->id;
     }
 }

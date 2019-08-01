@@ -82,9 +82,22 @@
             label="COM_CSVUPLOADS_DESCRIPTION_LABEL"
             description="COM_CATEGORIES_DESCRIPTION_DESC"
         />
+        <field name="state" type="list" label="JSTATUS"
+            description="JFIELD_PUBLISHED_DESC" class="chzn-color-state"
+            filter="intval" size="1" default="1"
+        >
+            <option value="1">
+                JPUBLISHED</option>
+            <option value="0">
+                JUNPUBLISHED</option>
+            <option value="2">
+                JARCHIVED</option>
+            <option value="-2">
+                JTRASHED</option>
+        </field>
     </fieldset>
 
-    <fields name="options">
+    <fields name="params">
         <fieldset
             name="options"
             label="COM_CSVUPLOADS_FIELDSET_OPTIONS_LEGEND"

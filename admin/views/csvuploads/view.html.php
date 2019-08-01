@@ -10,10 +10,16 @@
 defined('_JEXEC') or die;
 
 /**
- * CSVUploads Records View
+ * CSVUploads CSVUploads View
  */
 class CSVUploadsViewCSVUploads extends JViewLegacy
 {
+    protected $items;
+
+    protected $pagination;
+
+    protected $state;
+
     /**
      * Display the CSVUploads view
      *
@@ -23,38 +29,23 @@ class CSVUploadsViewCSVUploads extends JViewLegacy
      */
     function display($tpl = null)
     {
+        $this->state         = $this->get('State');
+        $this->items         = $this->get('Items');
+        $this->pagination    = $this->get('Pagination');
+        $this->filterForm    = $this->get('FilterForm');
+        $this->activeFilters = $this->get('ActiveFilters');
 
-        // Get application
-        $app = JFactory::getApplication();
-        $context = "csvuploads.list.admin.record";
-        // Get data from the model
-        $this->items            = $this->get('Items');
-        $this->pagination       = $this->get('Pagination');
-        $this->state            = $this->get('State');
-        $this->filter_order     = $app->getUserStateFromRequest($context.'filter_order', 'filter_order', 'name', 'cmd');
-        $this->filter_order_Dir = $app->getUserStateFromRequest($context.'filter_order_Dir', 'filter_order_Dir', 'asc', 'cmd');
-        $this->filterForm       = $this->get('FilterForm');
-        $this->activeFilters    = $this->get('ActiveFilters');
+        CSVUploadsHelper::addSubmenu('csvuploads');
 
         // Check for errors.
         if (count($errors = $this->get('Errors')))
         {
-            JError::raiseError(500, implode('<br />', $errors));
-
+            JError::raiseError(500, implode("\n", $errors));
             return false;
         }
 
-        // Set the submenu
-        #HelloWorldHelper::addSubmenu('helloworlds');
-
-        // Set the toolbar and number of found items
-        $this->addToolBar();
-
-        // Display the template
+        $this->addToolbar();
         parent::display($tpl);
-
-        // Set the document
-        $this->setDocument();
     }
 
     /**
@@ -62,46 +53,58 @@ class CSVUploadsViewCSVUploads extends JViewLegacy
      *
      * @return  void
      */
-    protected function addToolBar($hidetools = false)
+    protected function addToolBar()
     {
+        //$canDo = CSVUploadsHelper::getActions();
+        $canDo = JHelperContent::getActions('com_csvuploads');
+        $user  = JFactory::getUser();
+
         $title = JText::_('COM_CSVUPLOADS_MANAGER_RECORDS');
 
         if ($this->pagination->total) {
             $title .= "<span style='font-size: 0.5em; vertical-align: middle;'> (" . $this->pagination->total . ")</span>";
         }
 
-        JToolBarHelper::title($title, 'csvuploads');
-
-        $canDo = CSVUploadsHelper::getActions();
-
-
+        // Note 'question-circle' is an icon/classname. Change to suit in all views.
+        JToolBarHelper::title($title, 'upload');
+        /*
+        JToolBarHelper::addNew('csvupload.add');
         if (!empty($this->items)) {
-            JToolBarHelper::editList('record.edit');
-            JToolBarHelper::deleteList('', 'records.delete');
+            JToolBarHelper::editList('csvupload.edit');
+            JToolBarHelper::deleteList('', 'csvuploads.delete');
+        }
+        */
+        if ($canDo->get('core.create') || count($user->getAuthorisedCategories('com_csvuploads', 'core.create')) > 0) {
+            JToolbarHelper::addNew('csvupload.add');
         }
 
-        if (!$hidetools) {
-            if ($canDo->get('core.create')) {
-                JToolBarHelper::addNew('csvupload.add');
-                #JToolBarHelper::addNew('csvupload.add', 'JTOOLBAR_NEW');
-            }
-            if ($canDo->get('core.edit')) {
-                JToolBarHelper::editList('csvupload.edit');
-                #ToolBarHelper::editList('csvupload.edit', 'JTOOLBAR_EDIT');
-            }
-            if ($canDo->get('core.delete')) {
-                JToolBarHelper::deleteList('', 'csvuploads.delete');
-                #JToolBarHelper::deleteList('', 'csvuploads.delete', 'JTOOLBAR_DELETE');
-            }
+        if ($canDo->get('core.edit') || $canDo->get('core.edit.own'))
+        {
+            JToolbarHelper::editList('csvupload.edit');
         }
 
-        if ($canDo->get('core.admin')) {
-            if (!$hidetools) {
-                JToolBarHelper::divider();
-            }
-            JToolBarHelper::preferences('com_csvuploads');
+        if ($canDo->get('core.edit.state'))
+        {
+            JToolbarHelper::publish('csvuploads.publish', 'JTOOLBAR_PUBLISH', true);
+            JToolbarHelper::unpublish('csvuploads.unpublish', 'JTOOLBAR_UNPUBLISH', true);
+        }
+
+
+        if ($this->state->get('filter.published') == -2 && $canDo->get('core.delete'))
+        {
+            JToolbarHelper::deleteList('JGLOBAL_CONFIRM_DELETE', 'csvuploads.delete', 'JTOOLBAR_EMPTY_TRASH');
+        }
+        elseif ($canDo->get('core.edit.state'))
+        {
+            JToolbarHelper::trash('csvuploads.trash');
+        }
+
+        if ($user->authorise('core.admin', 'com_csvuploads') || $user->authorise('core.options', 'com_csvuploads'))
+        {
+            JToolbarHelper::preferences('com_csvuploads');
         }
     }
+
     /**
      * Method to set up the document properties
      *
@@ -111,5 +114,21 @@ class CSVUploadsViewCSVUploads extends JViewLegacy
     {
         $document = JFactory::getDocument();
         $document->setTitle(JText::_('COM_CSVUPLOADS_ADMINISTRATION'));
+    }
+
+    /**
+     * Returns an array of fields the table can be sorted by
+     *
+     * @return  array  Array containing the field name to sort by as the key and display text as value
+     */
+    protected function getSortFields()
+    {
+        return array(
+            'a.name'            => JText::_('COM_CSVUPLOADS_HEADING_NAME'),
+            'a.contact_user_id' => JText::_('COM_CSVUPLOADS_HEADING_CONTACT'),
+            'a.description'     => JText::_('COM_CSVUPLOADS_HEADING_DESCRIPTION'),
+            'a.state'           => JText::_('COM_CSVUPLOADS_HEADING_PUBLISHED'),
+            'a.id'              => JText::_('JGRID_HEADING_ID')
+        );
     }
 }

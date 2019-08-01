@@ -10,9 +10,9 @@
 defined('_JEXEC') or die;
 
 /**
- * CSVUploads Records Controller
+ * CSVUploads Controller
  */
-class CSVUploadsControllerCSVuploads extends JControllerAdmin
+class CSVUploadsControllerCSVUploads extends JControllerAdmin
 {
     /**
      * Proxy for getModel.
@@ -23,10 +23,8 @@ class CSVUploadsControllerCSVuploads extends JControllerAdmin
      *
      * @return  object  The model.
      */
-    public function getModel($name = 'CSVupload', $prefix = 'CSVUploadsModel', $config = array('ignore_request' => true))
+    public function getModel($name = 'CSVUpload', $prefix = 'CSVUploadsModel', $config = array('ignore_request' => true))
     {
-        $model = parent::getModel($name, $prefix, $config);
-
-        return $model;
+        return parent::getModel($name, $prefix, $config);
     }
 }

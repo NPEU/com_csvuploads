@@ -10,16 +10,17 @@
 defined('_JEXEC') or die;
 
 /**
- * CSVUploads Record View
+ * CSVUploads CSVUpload View
  */
 class CSVUploadsViewCSVUpload extends JViewLegacy
 {
-    /**
-     * View form
-     *
-     * @var         form
-     */
-    protected $form = null;
+    protected $state;
+
+    protected $item;
+
+    protected $form;
+
+    protected $script;
 
     /**
      * Display the CSVUploads view
@@ -41,11 +42,10 @@ class CSVUploadsViewCSVUpload extends JViewLegacy
             return;
         }
 
-        // Get the Data
-        $this->form   = $this->get('Form');
-        $this->item   = $this->get('Item');
-        #$this->script = $this->get('Script');
-        $this->is_new = (bool) !$this->item->id;
+        $this->state = $this->get('State');
+        $this->item  = $this->get('Item');
+        $this->form  = $this->get('Form');
+
 
         // Check for errors.
         if (count($errors = $this->get('Errors'))) {
@@ -53,8 +53,6 @@ class CSVUploadsViewCSVUpload extends JViewLegacy
 
             return false;
         }
-
-        $this->canDo = CSVuploadsHelper::getActions($this->item->id, $this->getModel());
 
         // Set the toolbar
         $this->addToolBar();
@@ -73,46 +71,53 @@ class CSVUploadsViewCSVUpload extends JViewLegacy
      */
     protected function addToolBar()
     {
-        $input = JFactory::getApplication()->input;
+        // Hide Joomla Administrator Main menu:
+        JFactory::getApplication()->input->set('hidemainmenu', true);
 
-        // Hide Joomla Administrator Main menu
-        $input->set('hidemainmenu', true);
+        $user       = JFactory::getUser();
+        $userId     = $user->id;
 
-        $canDo  = $this->canDo;
+
+        $checkedOut = !($this->item->checked_out == 0 || $this->item->checked_out == $userId);
         $isNew = ($this->item->id == 0);
 
-        if ($isNew) {
-            $title = JText::_('COM_CSVUPLOADS_MANAGER_RECORD_NEW');
+        // Build the actions for new and existing records.
+        $canDo = JHelperContent::getActions('com_csvuploads');
 
-            // For new records, check the create permission.
-            if ($canDo->get('core.create')) {
-                JToolBarHelper::apply('csvupload.apply');
-                JToolBarHelper::save('csvupload.save');
-                JToolBarHelper::save2new('csvupload.save2new');
-            }
-            JToolBarHelper::cancel('csvupload.cancel');
+        // Note 'question-circle' is an icon/classname. Change to suit in all views.
+        JToolbarHelper::title(
+            JText::_('COM_CSVUPLOADS_MANAGER_' . ($checkedOut ? 'RECORD_VIEW' : ($isNew ? 'RECORD_ADD' : 'RECORD_EDIT'))),
+            'upload'
+        );
+
+        // For new records, check the create permission.
+        if ($isNew && (count($user->getAuthorisedCategories('com_csvuploads', 'core.create')) > 0)) {
+            JToolbarHelper::apply('csvupload.apply');
+            JToolbarHelper::save('csvupload.save');
+            JToolbarHelper::save2new('csvupload.save2new');
+            JToolbarHelper::cancel('csvupload.cancel');
         } else {
-            $title = JText::_('COM_CSVUPLOADS_MANAGER_RECORD_EDIT');
+            // Since it's an existing record, check the edit permission, or fall back to edit own if the owner.
+            $itemEditable = $canDo->get('core.edit') || ($canDo->get('core.edit.own') && $this->item->created_by == $userId);
 
-            if ($canDo->get('core.edit')) {
-                // We can save the new record
-                JToolBarHelper::apply('csvupload.apply');
-                JToolBarHelper::save('csvupload.save');
+            // Can't save the record if it's checked out and editable
+            if (!$checkedOut && $itemEditable) {
+                JToolbarHelper::apply('csvupload.apply');
+                JToolbarHelper::save('csvupload.save');
 
-                // We can save this record, but check the create permission to see
-                // if we can return to make a new one.
+                // We can save this record, but check the create permission to see if we can return to make a new one.
                 if ($canDo->get('core.create')) {
-                    JToolBarHelper::save2new('csvupload.save2new');
+                    JToolbarHelper::save2new('csvupload.save2new');
                 }
             }
+            // If checked out, we can still save
             if ($canDo->get('core.create')) {
-                JToolBarHelper::save2copy('csvupload.save2copy');
+                JToolbarHelper::save2copy('csvupload.save2copy');
             }
-            JToolBarHelper::cancel('csvupload.cancel', 'JTOOLBAR_CLOSE');
+
+
+            JToolbarHelper::cancel('csvupload.cancel', 'JTOOLBAR_CLOSE');
         }
-
-
-
     }
     /**
      * Method to set up the document properties
@@ -125,10 +130,13 @@ class CSVUploadsViewCSVUpload extends JViewLegacy
         $document = JFactory::getDocument();
         $document->setTitle($isNew ? JText::_('COM_CSVUPLOADS_RECORD_CREATING') :
                 JText::_('COM_CSVUPLOADS_RECORD_EDITING'));
-        #$document->addScript(JURI::root() . $this->script);
+
+        if (!empty($this->script)) {
+            $document->addScript(JURI::root() . $this->script);
+        }
+
         $document->addScript(JURI::root() . "/administrator/components/com_csvuploads"
-                                          . "/views/com_csvupload/submitbutton.js");
-        $document->addStyleDeclaration('textarea.monospace {font-family: monospace}');
+                                          . "/views/csvupload/submitbutton.js");
         JText::script('COM_CSVUPLOADS_RECORD_ERROR_UNACCEPTABLE');
     }
 }

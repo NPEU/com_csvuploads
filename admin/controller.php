@@ -15,29 +15,33 @@ defined('_JEXEC') or die;
 class CSVUploadsController extends JControllerLegacy
 {
     /**
-     * The default view for the display method.
+     * Method to display a view.
      *
-     * @var string
-     */
-    protected $default_view = 'csvuploads';
-
-    /**
-     * display task
+     * @param   boolean  $cacheable  If true, the view output will be cached
+     * @param   array    $urlparams  An array of safe url parameters and their variable types,
+     *                               for valid values see {@link JFilterInput::clean()}.
      *
-     * @return void
+     * @return  JControllerLegacy  This object to support chaining.
      */
-    function display($cachable = false, $urlparams = false)
+    public function display($cacheable = false, $urlparams = false)
     {
-        // Set default view if not set
-        JFactory::getApplication()->input->set('view', JFactory::getApplication()->input->get('view', 'csvuploads'));
+        require_once JPATH_COMPONENT . '/helpers/csvuploads.php';
 
-        $session = JFactory::getSession();
-        $registry = $session->get('registry');
+        $view   = $this->input->get('view', 'csvuploads');
+        $layout = $this->input->get('layout', 'default');
+        $id     = $this->input->getInt('id');
 
-        // call parent behavior
-        parent::display($cachable, $urlparams);
+        // Check for edit form.
+        if ($view == 'csvupload' && $layout == 'edit' && !$this->checkEditId('com_csvuploads.edit.csvupload', $id))
+        {
+            // Somehow the person just went to the form - we don't allow that.
+            $this->setError(JText::sprintf('JLIB_APPLICATION_ERROR_UNHELD_ID', $id));
+            $this->setMessage($this->getError(), 'error');
+            $this->setRedirect(JRoute::_('index.php?option=com_csvuploads&view=csvuploads', false));
 
-        // Add style
-        CSVUploadsHelper::addStyle();
+            return false;
+        }
+
+        return parent::display();
     }
 }
