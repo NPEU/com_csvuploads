@@ -16,7 +16,7 @@ require_once dirname(__DIR__) . '/vendor/autoload.php';
  */
 class CSVUploadsControllerCSVUpload extends JControllerForm
 {
-        /**
+    /**
      * Constructor.
      *
      * @param   array  $config  An optional associative array of configuration settings.
@@ -47,8 +47,10 @@ class CSVUploadsControllerCSVUpload extends JControllerForm
         $item  = $model->getItem($data['id']);
         $user  = JFactory::getUser();
 
-        return !!($user->authorise('core.edit', $this->option)
-               || $user->authorise('core.edit', 'com_content.category.' . $item->catid));
+        $canEdit    = ($user->authorise('core.edit',    'com_csvuploads.' . $item->id) || ($user->authorise('core.edit', 'com_content.category.' . $item->catid)));
+        $canEditOwn = $user->authorise('core.edit.own', 'com_csvuploads.' . $item->id) && ($item->created_by == $user->id || $item->contact_user_id == $user->id);
+
+        return $canEdit || $canEditOwn;
     }
 
     /**

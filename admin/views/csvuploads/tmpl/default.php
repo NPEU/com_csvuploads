@@ -73,9 +73,9 @@ $listDirn    = $this->escape($this->state->get('list.direction'));
             <tbody>
             <?php foreach ($this->items as $i => $item) : ?>
                 <?php $canCreate      = $user->authorise('core.create',     'com_csvuploads.' . $item->id); ?>
-                <?php $canEdit        = $user->authorise('core.edit',       'com_csvuploads.' . $item->id); ?>
+                <?php $canEdit        = ($user->authorise('core.edit',       'com_csvuploads.' . $item->id) || ($user->authorise('core.edit', 'com_content.category.' . $item->catid))); ?>
                 <?php $canCheckin     = $user->authorise('core.manage',     'com_checkin') || $item->checked_out == $user->id || $item->checked_out == 0; ?>
-                <?php $canEditOwn     = $user->authorise('core.edit.own',   'com_csvuploads.' . $item->id) && $item->created_by == $user->id; ?>
+                <?php $canEditOwn     = $user->authorise('core.edit.own',   'com_csvuploads.' . $item->id) && ($item->created_by == $user->id || $item->contact_user_id == $user->id); ?>
                 <?php $canChange      = $user->authorise('core.edit.state', 'com_csvuploads.' . $item->id) && $canCheckin; ?>
 
                 <tr>

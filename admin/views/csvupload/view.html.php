@@ -98,7 +98,11 @@ class CSVUploadsViewCSVUpload extends JViewLegacy
             JToolbarHelper::cancel('csvupload.cancel');
         } else {
             // Since it's an existing record, check the edit permission, or fall back to edit own if the owner.
-            $itemEditable = $canDo->get('core.edit') || ($canDo->get('core.edit.own') && $this->item->created_by == $userId);
+            $canEdit    = ($user->authorise('core.edit',    'com_csvuploads.' . $this->item->id) || ($user->authorise('core.edit', 'com_content.category.' . $this->item->catid)));
+            $canEditOwn = $user->authorise('core.edit.own', 'com_csvuploads.' . $this->item->id) && ($this->item->created_by == $user->id || $this->item->contact_user_id == $user->id);
+
+            #$itemEditable = $canDo->get('core.edit') || ($canDo->get('core.edit.own') && $this->item->created_by == $userId);
+            $itemEditable =  $canEdit || $canEditOwn;
 
             // Can't save the record if it's checked out and editable
             if (!$checkedOut && $itemEditable) {
