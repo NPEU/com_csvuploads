@@ -119,11 +119,13 @@ class CSVUploadsModelCSVUpload extends JModelAdmin
 
         $table->name = htmlspecialchars_decode($table->name, ENT_QUOTES);
 
+        $table->modified    = $date->toSql();
+        $table->modified_by = $user->id;
+
         if (empty($table->id))
         {
-            // Set the values
-            $table->modified    = $date->toSql();
-            $table->modified_by = $user->id;
+            $table->created    = $date->toSql();
+            $table->created_by = $user->id;
         }
     }
 
