@@ -197,11 +197,11 @@ class CSVUploadsControllerCSVUpload extends JControllerForm
                                 $twig_data = $csv_data;
 
                                 // We need to parse this to format the json:
-                                $loader = new Twig_Loader_Array(array('tpl' => $data['params']['json_format']));
-                                $twig   = new Twig_Environment($loader);
+                                $loader = new \Twig\Loader\ArrayLoader(array('tpl' => $data['params']['json_format']));
+                                $twig   = new \Twig\Environment($loader);
 
                                 // Add html_id filter:
-                                $html_id_filter = new Twig_SimpleFilter('html_id', function ($string) {
+                                $html_id_filter = new \Twig\TwigFilter('html_id', function ($string) {
                                     $new_string = '';
 
                                     $new_string = self::htmlID($string);
