@@ -193,6 +193,11 @@ class CSVUploadsControllerCSVUpload extends JControllerForm
                             // Convert to JSON:
                             $json = json_encode($csv_data);
 
+                            if (empty($json) || $json == 'null') {
+                                JError::raiseWarning(100, JText::_('COM_CSVUPLOADS_MESSAGE_JSON_ERROR_1'));
+                                return false;
+                            }
+
                             if (!empty($data['params']['json_format'])) {
                                 $twig_data = $csv_data;
 
@@ -214,18 +219,22 @@ class CSVUploadsControllerCSVUpload extends JControllerForm
 
                                 // Encode then re-decode to produce tidier JSON:
                                 $json = json_decode($json, true);
-                                $json = json_encode($json, true);
+                                $json = json_encode($json);
                             }
 
-                            $json_filename = str_replace('.csv', '.json', $filename2);
+                            if (empty($json) || $json == 'null') {
+                                JError::raiseWarning(100, JText::_('COM_CSVUPLOADS_MESSAGE_JSON_ERROR_2'));
+                            } else {
+                                $json_filename = str_replace('.csv', '.json', $filename2);
 
-                            // Pass to any plugins looking to take action on the JSON data.
-                            // Note this may or may not transform the actual data itself.
-                            $results = $dispatcher->trigger('onBeforeSaveJSON', array(&$json, $json_filename));
+                                // Pass to any plugins looking to take action on the JSON data.
+                                // Note this may or may not transform the actual data itself.
+                                $results = $dispatcher->trigger('onBeforeSaveJSON', array(&$json, $json_filename));
 
-                            JFile::write($json_path . $json_filename, $json);
+                                JFile::write($json_path . $json_filename, $json);
 
-                            $app->enqueueMessage(sprintf(JText::_('COM_CSVUPLOADS_MESSAGE_JSON_SUCCESS'), $json_filename));
+                                $app->enqueueMessage(sprintf(JText::_('COM_CSVUPLOADS_MESSAGE_JSON_SUCCESS'), $json_filename));
+                            }
                         }
 
                         // Copy the the file to overwrite the unstamped version:
