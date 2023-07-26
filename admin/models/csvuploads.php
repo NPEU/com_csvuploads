@@ -119,7 +119,7 @@ class CSVUploadsModelCSVUploads extends JModelList
             ->select($db->quoteName('c.username', 'contact_username'))
             ->select($db->quoteName('c.email', 'contact_email'))
             ->join('LEFT', $db->quoteName('#__users', 'c') . ' ON ' . $db->qn('c.id') . ' = ' . $db->qn('a.contact_user_id'));
-            
+
         // Filter: like / search
         $search = $this->getState('filter.search');
 
