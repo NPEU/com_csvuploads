@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<config
-    addrulepath="/administrator/components/com_csvuploads/config"
->
+<config>
     <fieldset
         name="folders"
-        label="COM_CSVUPLOADS_CONFIG_SETTINGS_LABEL"
-        description="COM_CSVUPLOADS_CONFIG_SETTINGS_DESC"
+        label="COM_CSVUPLOADS_CONFIG_RECORDS_SETTINGS_LABEL"
+        description="COM_CSVUPLOADS_CONFIG_RECORDS_SETTINGS_DESC"
     >
         <field
             name="uploadfolder"
@@ -31,38 +29,16 @@
             validate="createfolder"
         />
     </fieldset>
-       <fieldset
-        name="categories"
-        label="COM_CSVUPLOADS_CONFIG_CATEGORIES_LABEL"
-    >
-        <field
-            name="cat_exclude"
-            type="text"
-            label="COM_CSVUPLOADS_CONFIG_CATEGORIES_EXCLUDE_LABEL"
-            description="COM_CSVUPLOADS_CONFIG_CATEGORIES_EXCLUDE_DESC"
-            default=""
-        />
-        <field
-            name="cat_depth"
-            type="text"
-            label="COM_CSVUPLOADS_CONFIG_CATEGORIES_DEPTH_LABEL"
-            description="COM_CSVUPLOADS_CONFIG_CATEGORIES_DEPTH_DESC"
-            default="*"
-        />
-    </fieldset>
-    <fieldset
-        name="permissions"
-        label="JCONFIG_PERMISSIONS_LABEL"
+
+    <fieldset name="permissions"
         description="JCONFIG_PERMISSIONS_DESC"
+        label="JCONFIG_PERMISSIONS_LABEL"
     >
-        <field
-            name="rules"
-            type="rules"
-            label="JCONFIG_PERMISSIONS_LABEL"
-            class="inputbox"
-            validate="rules"
-            filter="rules"
+        <field name="rules" type="rules"
             component="com_csvuploads"
+            filter="rules"
+            validate="rules"
+            label="JCONFIG_PERMISSIONS_LABEL"
             section="component"
         />
     </fieldset>
