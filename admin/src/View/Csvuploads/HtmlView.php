@@ -12,15 +12,15 @@ namespace NPEU\Component\Csvuploads\Administrator\View\Csvuploads;
 defined('_JEXEC') or die;
 
 
+use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
+use Joomla\CMS\MVC\View\GenericDataException;
+use Joomla\CMS\Toolbar\Toolbar;
+use Joomla\CMS\Toolbar\ToolbarHelper;
+use Joomla\CMS\Toolbar\ToolbarFactoryInterface;
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Helper\ContentHelper;
-use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\FileLayout;
-use Joomla\CMS\MVC\View\GenericDataException;
-use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
-use Joomla\CMS\Toolbar\Toolbar;
-use Joomla\CMS\Toolbar\ToolbarFactoryInterface;
-use Joomla\CMS\Toolbar\ToolbarHelper;
 
 class HtmlView extends BaseHtmlView {
     /**
@@ -120,13 +120,11 @@ class HtmlView extends BaseHtmlView {
 
         // Display the layout
         parent::display($tpl);
-
-        $this->setDocument();
     }
 
     protected function addToolBar()
     {
-        $title = Text::_('COM_CSVUPLOADS_MANAGER_RECORDS', 'smiley-2');
+        $title = Text::_('COM_CSVUPLOADS_MANAGER_RECORDS');
 
         $bar = Toolbar::getInstance('toolbar');
 
@@ -134,7 +132,7 @@ class HtmlView extends BaseHtmlView {
         {
             $title .= "<span style='font-size: 0.5em; vertical-align: middle;'>(" . $this->pagination->total . ")</span>";
         }*/
-        ToolBarHelper::title($title, 'Messages');
+        ToolBarHelper::title($title, 'grid-2');
 
         if ($this->canDo->get('core.create')) {
             ToolBarHelper::addNew('csvupload.add', 'JTOOLBAR_NEW');
@@ -179,11 +177,4 @@ class HtmlView extends BaseHtmlView {
             ToolBarHelper::preferences('com_csvuploads');
         }
     }
-
-    protected function setDocument()
-    {
-        //$document = Factory::getApplication()->getDocument();
-        $this->document->setTitle(Text::_('COM_CSVUPLOADS_ADMINISTRATION'));
-    }
-
 }
