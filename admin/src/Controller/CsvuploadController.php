@@ -91,10 +91,6 @@ class CsvuploadController extends FormController
 
         $accept_types = explode(', ', $form->getFieldAttribute('file', 'accept'));
 
-        echo '<pre>';
-        var_dump($data);
-        echo '</pre>'; exit;
-
         $query->select('alias');
         $query->from('#__categories');
         $query->where('id = ' . $data['catid']);
