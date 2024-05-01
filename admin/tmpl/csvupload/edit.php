@@ -55,6 +55,7 @@ $field_types_no_label = [
     method="post"
     name="adminForm"
     id="csvupload-form"
+    enctype="multipart/form-data"
     class="form-validate">
 
     <?php #echo LayoutHelper::render('joomla.edit.title_alias', $this); ?>

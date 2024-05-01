@@ -105,7 +105,7 @@ class CsvuploadController extends FormController
         $catfolder    = $db->loadResult();
 
         // Upload the file:
-        $files = Factory::getApplication()->input->files->get($control);
+        $files = $app->input->files->get($control);
 
         if (!empty($files['file']['name'])) {
             $filename1    = str_replace(' ', '-', strtolower(File::makeSafe($data['name']))) . '-' . time() . '.csv';
@@ -145,20 +145,27 @@ class CsvuploadController extends FormController
 
                 // Pass to any plugins looking to take action on the CSV data.
                 // Note this may or may not transform the actual data itself.
-                #$event_results = $dispatcher->trigger('onAfterLoadCSV', array(&$csv_data, $filename2));
-                $event = AbstractEvent::create(
+                $event_results = $app->triggerEvent('onAfterLoadCSV', [$csv_data, $filename2]);
+
+                /*
+                This is the Joomla 4 way but it's not working so I meed tp imvestigate why
+                https://docs.joomla.org/J4.x:Creating_a_Plugin_for_Joomla
+                */
+                /*
+                /$event = AbstractEvent::create(
                     'onAfterLoadCSV',
                     [
                         &$csv_data,
                         $filename2
                     ]
                 );
-
+                #echo '<pre>'; var_dump($event); echo '</pre>'; exit;
                 $event_results = $dispatcher->dispatch('onAfterLoadCSV', $event);
 
                 if (in_array('STOP', $event_results, true)) {
                     $save_to_csv_file = false;
                 }
+                */
 
                 if ($save_to_csv_file) {
                     $csv_folder_path = JPATH_ROOT . '/' . $uploadfolder . '/' . $csvfolder . '/';
