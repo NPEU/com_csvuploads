@@ -1,0 +1,1 @@
+ALTER TABLE #__csvuploads ADD COLUMN state tinyint(3) NOT NULL DEFAULT '0' AFTER params;
