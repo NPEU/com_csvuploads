@@ -47,6 +47,8 @@ class HtmlView extends BaseHtmlView {
 
         $this->addToolBar();
 
+        $this->setDocument();
+
         parent::display($tpl);
     }
 
@@ -60,7 +62,7 @@ class HtmlView extends BaseHtmlView {
         $isNew = ($this->item->id == 0);
 
         ToolBarHelper::title($isNew ? Text::_('COM_CSVUPLOADS_MANAGER_RECORD_ADD')
-                                    : Text::_('COM_CSVUPLOADS_MANAGER_RECORD_EDIT'), 'grid-2');
+                                    : Text::_('COM_CSVUPLOADS_MANAGER_RECORD_EDIT'), 'csvupload');
         // Build the actions for new and existing records.
         if ($isNew) {
             // For new records, check the create permission.
@@ -95,5 +97,16 @@ class HtmlView extends BaseHtmlView {
             }
             ToolbarHelper::cancel('csvupload.cancel', 'JTOOLBAR_CLOSE');
         }
+    }
+
+    protected function setDocument() {
+        //HtmlHelper::_('behavior.framework');
+        //HtmlHelper::_('behavior.formvalidator');
+
+        $isNew = ($this->item->id < 1);
+        $this->document->setTitle($isNew
+          ? Text::_('COM_CSVUPLOADS_RECORD_CREATING')
+          : Text::_('COM_CSVUPLOADS_RECORD_EDITING')
+        );
     }
 }

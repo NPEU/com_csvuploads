@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form
-    addfieldprefix="NPEU\Component\Csvuploads\Administrator\Field"
+    addrulepath="/administrator/components/com_csvuploads/models/rules"
+    addfieldpath="/administrator/components/com_csvuploads/models/fields"
 >
     <fieldset
         name="main"
@@ -24,17 +25,6 @@
             accept="text/csv, application/vnd.ms-excel"
             required="true"
         />
-        <field
-                name="catid"
-                type="filteredcategories"
-                extension="com_content"
-                default=""
-                label="COM_CSVUPLOADS_CATID_LABEL"
-                description="COM_CSVUPLOADS_CATID_DESC"
-                required="true"
-            >
-                <option value="">COM_CSVUPLOADS_CATID_OPTION</option>
-        </field>
         <field
             name="access"
             type="accesslevel"
