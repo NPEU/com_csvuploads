@@ -9,7 +9,7 @@
     <copyright>(C) NPEU 2023</copyright>
     <license>MIT License; see LICENSE.md</license>
 
-    <version>2.4.1</version>
+    <version>4.0.1</version>
     <description>COM_CSVUPLOADS_DESCRIPTION</description>
 
     <namespace path="src">NPEU\Component\Csvuploads</namespace>
@@ -34,13 +34,6 @@
         </schemas>
     </update>
 
-    <files folder="site">
-        <folder>forms</folder>
-        <folder>language</folder>
-        <folder>src</folder>
-        <folder>tmpl</folder>
-    </files>
-
     <administration>
         <menu>COM_CSVUPLOADS_MENU</menu>
 
@@ -53,6 +46,7 @@
             <folder>sql</folder>
             <folder>src</folder>
             <folder>tmpl</folder>
+            <folder>vendor</folder>
         </files>
     </administration>
 
