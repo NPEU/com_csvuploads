@@ -71,7 +71,7 @@ class CsvuploadController extends FormController
         // Register events group:
         PluginHelper::importPlugin('csvuploads');
         #$dispatcher = EventDispatcher::getInstance();
-        $dispatcher = Factory::getApplication()->getDispatcher();
+        #$dispatcher = Factory::getApplication()->getDispatcher();
 
         jimport('joomla.filesystem.file');
 
@@ -258,7 +258,8 @@ class CsvuploadController extends FormController
 
                                 // Pass to any plugins looking to take action on the JSON data.
                                 // Note this may or may not transform the actual data itself.
-                                $results = $dispatcher->trigger('onBeforeSaveJSON', array(&$json, $json_filename));
+
+                                $results = $app->triggerEvent('onBeforeSaveJSON', array(&$json, $json_filename));
 
                                 File::write($json_path . $json_filename, $json);
 
