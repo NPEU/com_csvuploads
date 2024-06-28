@@ -11,6 +11,8 @@ namespace NPEU\Component\Csvuploads\Administrator\Controller;
 
 defined('_JEXEC') or die;
 
+require_once dirname(dirname(__DIR__)) . '/vendor/autoload.php';
+
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Filesystem\File;
