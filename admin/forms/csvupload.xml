@@ -44,7 +44,7 @@
             size="1"
         />
         <field
-            name="contact_user_id"
+            name="created_by"
             type="sql"
             label="COM_CSVUPLOADS_CONTACT_LABEL"
             description="COM_CSVUPLOADS_CONTACT_DESC"

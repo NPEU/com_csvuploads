@@ -40,7 +40,7 @@ class CsvuploadsModel extends ListModel
                 'description', 'a.description',
                 'params', 'a.params',
                 'state', 'a.state',
-                'contact_user_id', 'a.contact_user_id',
+                'created_by', 'a.created_by',
                 'c.name', 'contact_name',
                 'c.username', 'contact_username',
                 'c.email', 'contact_email',
@@ -116,7 +116,7 @@ class CsvuploadsModel extends ListModel
         $query->select(
             $this->getState(
                 'list.select',
-                'a.id, a.name, a.contact_user_id, a.description, a.checked_out, a.checked_out_time, a.created_by, a.state'
+                'a.id, a.name, a.created_by, a.description, a.checked_out, a.checked_out_time, a.created_by, a.state'
             )
         );
         $query->from($db->quoteName('#__csvuploads', 'a'));
@@ -129,7 +129,7 @@ class CsvuploadsModel extends ListModel
         $query->select($db->quoteName('c.name', 'contact_name'))
             ->select($db->quoteName('c.username', 'contact_username'))
             ->select($db->quoteName('c.email', 'contact_email'))
-            ->join('LEFT', $db->quoteName('#__users', 'c') . ' ON ' . $db->qn('c.id') . ' = ' . $db->qn('a.contact_user_id'));
+            ->join('LEFT', $db->quoteName('#__users', 'c') . ' ON ' . $db->qn('c.id') . ' = ' . $db->qn('a.created_by'));
 
         // Filter: like / search
         $search = $this->getState('filter.search');

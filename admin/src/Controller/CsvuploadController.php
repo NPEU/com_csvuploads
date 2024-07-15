@@ -56,7 +56,10 @@ class CsvuploadController extends FormController
         $id = isset( $data[ $key ] ) ? $data[ $key ] : 0;
         if( !empty( $id ) )
         {
-            return Factory::getApplication()->getIdentity()->authorise( "core.edit", "com_csvuploads.csvupload." . $id );
+            return (
+                Factory::getApplication()->getIdentity()->authorise( "core.edit", "com_csvuploads.csvupload." . $id )
+             || Factory::getApplication()->getIdentity()->authorise( "core.edit.own", "com_csvuploads.csvupload." . $id )
+            );
         }
     }
 

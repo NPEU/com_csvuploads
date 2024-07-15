@@ -72,7 +72,7 @@ class HtmlView extends BaseHtmlView {
             }
             ToolbarHelper::cancel('csvupload.cancel', 'JTOOLBAR_CANCEL');
         } else {
-            if ($this->canDo->get('core.edit')) {
+            if ($this->canDo->get('core.edit') || $this->canDo->get('core.edit.own')) {
                 // We can save the new record
                 ToolbarHelper::apply('csvupload.apply', 'JTOOLBAR_APPLY');
                 ToolbarHelper::save('csvupload.save', 'JTOOLBAR_SAVE');

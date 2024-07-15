@@ -159,7 +159,7 @@ class CsvuploadModel extends AdminModel
 
         if (empty($table->id)) {
             $table->created    = $date->toSql();
-            $table->created_by = $user->id;
+            #$table->created_by = $user->id;
         }
     }
 
