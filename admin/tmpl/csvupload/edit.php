@@ -18,7 +18,7 @@ use Joomla\CMS\Router\Route;
 
 HTMLHelper::_('behavior.formvalidator');
 
-$global_edit_fields = array(
+$global_edit_fields = [
     'id',
     'parent',
     'parent_id',
@@ -33,7 +33,7 @@ $global_edit_fields = array(
     'tags',
     'note',
     'version_note'
-);
+];
 
 $app = Factory::getApplication();
 $input = $app->input;

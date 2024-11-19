@@ -149,6 +149,18 @@
             filter="unset"
         />
         <field
+            name="created_by_alias"
+            type="hidden"
+            filter="unset"
+            default=""
+        />
+        <field
+            name="modified_by_alias"
+            type="hidden"
+            filter="unset"
+            default=""
+        />
+        <field
             name="rules"
             type="rules"
             label="COM_CSVUPLOADS_FIELD_RULES_LABEL"
