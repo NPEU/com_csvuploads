@@ -55,12 +55,12 @@ class CsvuploadTable extends Table
     }
 
     public function bind($array, $ignore = '') {
-        /*if (isset($array['params']) && is_array($array['params'])) {
+        if (isset($array['params']) && is_array($array['params'])) {
             // Convert the params field to a string.
             $parameter = new Registry;
             $parameter->loadArray($array['params']);
             $array['params'] = (string)$parameter;
-        }*/
+        }
 
         // Bind the rules.
         if (isset($array['rules']) && \is_array($array['rules'])) {
