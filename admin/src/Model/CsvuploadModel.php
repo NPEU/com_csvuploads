@@ -159,7 +159,7 @@ class CsvuploadModel extends AdminModel
 
         if (empty($table->id)) {
             $table->created    = $date->toSql();
-            #$table->created_by = $user->id;
+            $table->created_by = $user->id;
         }
     }
 
@@ -212,22 +212,22 @@ class CsvuploadModel extends AdminModel
      * @param   string   $alias        The alias.
      * @param   string   $name         The name.
      *
-     * @return  STRING  The modified name.
+     * @return  array  Contains the modified name and alias.
      */
     protected function generateNewTitle($category_id, $alias, $name)
     {
         // Alter the name & alias
         $table = $this->getTable();
 
-        while ($table->load(['name' => $name])) {
+        while ($table->load(array('alias' => $alias))) {
             if ($name == $table->name) {
                 $name = \Joomla\String\StringHelper::increment($name);
             }
 
-            $name = \Joomla\String\StringHelper::increment($name, 'dash');
+            $alias = \Joomla\String\StringHelper::increment($alias, 'dash');
         }
 
-        return $name;
+        return array($name, $alias);
     }
 
     /**
