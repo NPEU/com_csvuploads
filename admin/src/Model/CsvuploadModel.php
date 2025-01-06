@@ -212,22 +212,22 @@ class CsvuploadModel extends AdminModel
      * @param   string   $alias        The alias.
      * @param   string   $name         The name.
      *
-     * @return  array  Contains the modified name and alias.
+     * @return  STRING  The modified name.
      */
     protected function generateNewTitle($category_id, $alias, $name)
     {
         // Alter the name & alias
         $table = $this->getTable();
 
-        while ($table->load(array('alias' => $alias))) {
+        while ($table->load(['name' => $name])) {
             if ($name == $table->name) {
                 $name = \Joomla\String\StringHelper::increment($name);
             }
 
-            $alias = \Joomla\String\StringHelper::increment($alias, 'dash');
+            $name = \Joomla\String\StringHelper::increment($name, 'dash');
         }
 
-        return array($name, $alias);
+        return $name;
     }
 
     /**
