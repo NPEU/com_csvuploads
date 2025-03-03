@@ -129,7 +129,7 @@ class CsvuploadsModel extends ListModel
         $query->select($db->quoteName('c.name', 'contact_name'))
             ->select($db->quoteName('c.username', 'contact_username'))
             ->select($db->quoteName('c.email', 'contact_email'))
-            ->join('LEFT', $db->quoteName('#__users', 'c') . ' ON ' . $db->qn('c.id') . ' = ' . $db->qn('a.created_by'));
+            ->join('LEFT', $db->quoteName('#__users', 'c') . ' ON ' . $db->quoteName('c.id') . ' = ' . $db->quoteName('a.created_by'));
 
         // Filter: like / search
         $search = $this->getState('filter.search');
