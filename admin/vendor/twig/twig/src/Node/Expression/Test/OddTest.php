@@ -28,8 +28,14 @@ class OddTest extends TestExpression
         $compiler
             ->raw('(')
             ->subcompile($this->getNode('node'))
-            ->raw(' % 2 == 1')
+            ->raw(' % 2 != 0')
             ->raw(')')
         ;
+    }
+
+    public function getStringCoercedChildNames(): array
+    {
+        // PHP `%` rejects Stringable with a TypeError, no coercion
+        return [];
     }
 }
